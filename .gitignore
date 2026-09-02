@@ -1,0 +1,29 @@
+# Gradle
+.gradle/
+build/
+bin/
+
+# Node (husky/commitlint tooling only)
+node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jason runtime artifacts
+.stop___MAS*
+
+# JADE platform files written at runtime
+APDescription.txt
+MTPs-*.txt
+
+# Logs
+*.log
+
+# Ignore package-lock.json
+package-lock.json

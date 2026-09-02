@@ -1,0 +1,14 @@
+{
+  "name": "mednet-tooling",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Git hooks tooling for the MedNet MAS project (husky + commitlint).",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
+    "husky": "^9.1.7"
+  }
+}
