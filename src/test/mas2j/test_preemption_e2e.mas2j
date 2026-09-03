@@ -1,0 +1,24 @@
+MAS test_preemption_e2e {
+
+    infrastructure: Local
+
+    environment: mednet.env.MedNetEnv("seed=7", "scenario=preemption", "period=100")
+
+    agents:
+        control_center;
+
+        ambulance_a1 ambulance.asl;
+        ambulance_a2 ambulance.asl;
+        ambulance_a3 ambulance.asl;
+
+        patient1 patient.asl;
+        patient2 patient.asl;
+
+        hospital_h1 hospital.asl;
+        triage_nurse_h1 triage_nurse.asl;
+        doctor_h1_general doctor.asl;
+        equipment_manager_h1 equipment_manager.asl;
+
+    aslSourcePath:
+        "src/main/asl";
+}

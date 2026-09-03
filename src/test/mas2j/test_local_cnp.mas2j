@@ -1,0 +1,16 @@
+MAS test_local_cnp {
+
+    infrastructure: Local
+
+    environment: mednet.testsupport.TestSupportEnv
+
+    agents:
+        driver script_single_handover.asl;
+        triage_nurse_h1 triage_nurse.asl;
+        doctor_h1_neurology mock_doctor.asl;
+        doctor_h1_general mock_doctor.asl;
+
+    aslSourcePath:
+        "src/main/asl";
+        "src/test/asl";
+}

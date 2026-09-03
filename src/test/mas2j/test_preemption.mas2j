@@ -1,0 +1,15 @@
+MAS test_preemption {
+
+    infrastructure: Local
+
+    environment: mednet.testsupport.TestSupportEnv
+
+    agents:
+        driver script_handover.asl;
+        triage_nurse_h1 triage_nurse.asl;
+        doctor_h1_general mock_busy_doctor.asl;
+
+    aslSourcePath:
+        "src/main/asl";
+        "src/test/asl";
+}

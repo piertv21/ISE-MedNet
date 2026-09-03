@@ -1,0 +1,18 @@
+MAS test_network_cnp {
+
+    infrastructure: Local
+
+    environment: mednet.testsupport.TestSupportEnv
+
+    agents:
+        control_center;
+        patient1 script_patient.asl;
+        ambulance_a1 mock_ambulance.asl;
+        hospital_h1 mock_hospital.asl;
+        hospital_h2 mock_hospital.asl;
+        hospital_h3 mock_hospital_refuser.asl;
+
+    aslSourcePath:
+        "src/main/asl";
+        "src/test/asl";
+}
