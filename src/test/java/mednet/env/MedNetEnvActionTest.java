@@ -1,15 +1,15 @@
 package mednet.env;
 
-import mednet.env.probe.ProbeRegistry;
-import mednet.model.patient.SeverityCode;
-import mednet.testsupport.TestProbe;
-import jason.asSyntax.ASSyntax;
-import jason.asSyntax.Structure;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import jason.asSyntax.ASSyntax;
+import jason.asSyntax.Structure;
+import mednet.env.probe.ProbeRegistry;
+import mednet.model.patient.SeverityCode;
+import mednet.testsupport.TestProbe;
 
 class MedNetEnvActionTest {
 
@@ -63,11 +63,13 @@ class MedNetEnvActionTest {
 
     @Test
     void fullAmbulancePipelineOnTheTerritorialLayer() throws Exception {
+        ticks(5);
         assertThat(env.patients().find("patient1")).isPresent();
 
         assertThat(act("ambulance_a1", "preliminary_triage(patient1)")).isFalse();
 
         assertThat(act("ambulance_a1", "move_to(8, 8)")).isTrue();
+        ticks(14);
         assertThat(act("ambulance_a1", "preliminary_triage(patient1)")).isTrue();
         assertThat(act("ambulance_a1", "load_patient(patient1)")).isTrue();
 
