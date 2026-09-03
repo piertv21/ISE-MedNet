@@ -1,0 +1,12 @@
+!start.
++!start <- mednet.df.df_register("ambulance").
+
++!pickup(CallId, Patient, Pos)[source(control_center)]
+   <- .my_name(Me);
+      report(pickup_ordered(Me, CallId, Patient));
+      .send(control_center, tell, triage_report(CallId, stroke, red, Pos)).
+
++transport_to(CallId, Hospital)[source(control_center)]
+   <- .abolish(transport_to(CallId, Hospital));
+      .my_name(Me);
+      report(transport_ordered(Me, CallId, Hospital)).
