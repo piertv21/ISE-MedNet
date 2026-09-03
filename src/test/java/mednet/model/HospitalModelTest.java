@@ -1,12 +1,12 @@
 package mednet.model;
 
-import mednet.model.hospital.HospitalModel;
-import mednet.model.patient.SeverityCode;
-import mednet.model.scenario.ScenarioConfig;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import mednet.model.hospital.HospitalModel;
+import mednet.model.patient.SeverityCode;
+import mednet.model.scenario.ScenarioConfig;
 
 class HospitalModelTest {
 
@@ -58,6 +58,7 @@ class HospitalModelTest {
         assertThat(h1.bedsFree()).isEqualTo(2);
         h1.onTick(HospitalModel.WALK_IN_STAY_TICKS);
         assertThat(h1.bedsFree()).isEqualTo(3);
+    }
 
     @Test
     void reReservationClearsTheDivertedFlag() {
