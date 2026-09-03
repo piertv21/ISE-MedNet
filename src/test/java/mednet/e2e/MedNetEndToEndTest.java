@@ -1,18 +1,18 @@
 package mednet.e2e;
 
-import mednet.env.MedNetEnv;
-import mednet.env.probe.ProbeRegistry;
-import mednet.testsupport.MasTestRunner;
-import mednet.testsupport.TestProbe;
+import java.time.Duration;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import java.time.Duration;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import mednet.env.MedNetEnv;
+import mednet.env.probe.ProbeRegistry;
+import mednet.testsupport.MasTestRunner;
+import mednet.testsupport.TestProbe;
 
 @Tag("mas")
 class MedNetEndToEndTest {

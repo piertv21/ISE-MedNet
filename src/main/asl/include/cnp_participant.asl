@@ -1,5 +1,5 @@
 +cfp(CnpId, Task)[source(Initiator)]
-      .abolish(cfp(CnpId, Task));
+   <- .abolish(cfp(CnpId, Task));
       !bid_or_refuse(CnpId, Task, Initiator).
 
 +!bid_or_refuse(CnpId, Task, Initiator)
