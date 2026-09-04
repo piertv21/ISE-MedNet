@@ -2,7 +2,7 @@ MAS test_divert_e2e {
 
     infrastructure: Local
 
-    environment: mednet.env.MedNetEnv("seed=11", "scenario=divert", "period=100")
+    environment: mednet.env.MedNetEnv("seed=11", "scenario=divert", "period=250")
 
     agents:
         control_center;

@@ -2,7 +2,7 @@ bid_of(doctor_h1_neurology, 0).
 bid_of(doctor_h1_general, 10).
 
 !start.
-+!start <- mednet.df.df_register("doctor_h1").
++!start <- .df_register("doctor_h1").
 
 +cfp(CnpId, Task)[source(Initiator)]
    <- .abolish(cfp(CnpId, Task));

@@ -1,5 +1,5 @@
 !start.
-+!start <- mednet.df.df_register("hospital").
++!start <- .df_register("hospital").
 
 +cfp(CnpId, Task)[source(Initiator)]
    <- .abolish(cfp(CnpId, Task));

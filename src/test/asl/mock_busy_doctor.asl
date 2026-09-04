@@ -1,5 +1,5 @@
 !start.
-+!start <- mednet.df.df_register("doctor_h1").
++!start <- .df_register("doctor_h1").
 
 +cfp(CnpId, Task)[source(Initiator)]
    :  not busy

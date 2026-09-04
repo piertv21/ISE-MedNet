@@ -1,5 +1,5 @@
 !start.
-+!start <- mednet.df.df_register("ambulance").
++!start <- .df_register("ambulance").
 
 +!pickup(CallId, Patient, Pos)[source(control_center)]
    <- .my_name(Me);

@@ -1,0 +1,18 @@
+MAS test_double_trigger {
+
+    infrastructure: Local
+
+    environment: mednet.testsupport.TestSupportEnv
+
+    agents:
+        control_center;
+        patient1 script_patient.asl;
+        ambulance_a1 mock_ambulance_failing.asl;
+        hospital_h1 mock_hospital_diverter.asl;
+        hospital_h2 mock_hospital.asl;
+        hospital_h3 mock_hospital.asl;
+
+    aslSourcePath:
+        "src/main/asl";
+        "src/test/asl";
+}

@@ -1,8 +1,10 @@
 !start.
-+!start <- mednet.df.df_register("hospital").
++!start <- .df_register("hospital").
 
 +cfp(CnpId, Task)[source(Initiator)]
    <- .abolish(cfp(CnpId, Task));
+      .my_name(Me);
+      report(cfp_received(Me, CnpId));
       .send(Initiator, tell, propose(CnpId, 100)).
 
 +accept_proposal(CnpId, Task)[source(Initiator)]
@@ -13,3 +15,8 @@
       .wait(500);
       report(divert_sent(Me, CnpId));
       .send(Initiator, tell, divert_request(CnpId)).
+
++cancel_admission(CallId, Patient)[source(_)]
+   <- .abolish(cancel_admission(CallId, Patient));
+      .my_name(Me);
+      report(cancelled(Me, CallId)).
