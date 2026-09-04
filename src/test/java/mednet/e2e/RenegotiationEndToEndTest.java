@@ -1,6 +1,7 @@
 package mednet.e2e;
 
 import mednet.env.probe.ProbeRegistry;
+import mednet.testsupport.EndState;
 import mednet.testsupport.MasTestRunner;
 import mednet.testsupport.TestProbe;
 import org.junit.jupiter.api.AfterAll;
@@ -44,5 +45,17 @@ class RenegotiationEndToEndTest {
                 Duration.ofSeconds(120));
 
         assertThat(PROBE.count(e -> e.type().equals("rbac_denied"))).isZero();
+
+        EndState.assertQuiescent(PROBE);
+
+        final long reservations =
+                PROBE.count(e -> e.type().equals("bed_reserved") && e.data().contains("patient1"));
+        final long releases = PROBE.count(e -> e.type().equals("bed_released")
+                && e.data().contains("patient1"));
+        final long walkInSteals =
+                PROBE.count(e -> e.type().equals("walk_in") && e.data().contains("patient1"));
+        assertThat(releases + walkInSteals)
+                .as("reservations for patient1 that were undone")
+                .isEqualTo(reservations - 1);
     }
 }

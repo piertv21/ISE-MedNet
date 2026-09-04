@@ -1,15 +1,15 @@
 package mednet.model;
 
-import mednet.model.hospital.HospitalModel;
-import mednet.model.patient.PatientRegistry;
-import mednet.model.scenario.ScenarioConfig;
-import mednet.model.scenario.ScenarioGenerator;
-import org.junit.jupiter.api.Test;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+
+import mednet.model.hospital.HospitalModel;
+import mednet.model.patient.PatientRegistry;
+import mednet.model.scenario.ScenarioConfig;
+import mednet.model.scenario.ScenarioGenerator;
 
 class ScenarioGeneratorTest {
 

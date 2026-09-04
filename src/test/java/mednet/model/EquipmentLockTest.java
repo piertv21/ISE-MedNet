@@ -1,8 +1,5 @@
 package mednet.model;
 
-import mednet.model.hospital.Equipment;
-import org.junit.jupiter.api.Test;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -10,6 +7,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+
+import mednet.model.hospital.Equipment;
 
 class EquipmentLockTest {
 

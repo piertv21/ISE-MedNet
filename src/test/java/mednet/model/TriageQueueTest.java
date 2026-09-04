@@ -1,13 +1,13 @@
 package mednet.model;
 
-import mednet.model.hospital.TriageEntry;
-import mednet.model.hospital.TriageQueue;
-import mednet.model.patient.SeverityCode;
-import org.junit.jupiter.api.Test;
-
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+
+import mednet.model.hospital.TriageEntry;
+import mednet.model.hospital.TriageQueue;
+import mednet.model.patient.SeverityCode;
 
 class TriageQueueTest {
 

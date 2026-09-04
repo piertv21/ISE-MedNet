@@ -1,17 +1,17 @@
 package mednet.cnp;
 
-import mednet.env.probe.ProbeRegistry;
-import mednet.testsupport.MasTestRunner;
-import mednet.testsupport.TestProbe;
-import mednet.testsupport.TestSupportEnv;
+import java.time.Duration;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import java.time.Duration;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import mednet.env.probe.ProbeRegistry;
+import mednet.testsupport.MasTestRunner;
+import mednet.testsupport.TestProbe;
+import mednet.testsupport.TestSupportEnv;
 
 @Tag("mas")
 class NetworkCnpMockedTest {

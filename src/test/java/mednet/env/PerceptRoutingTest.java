@@ -75,14 +75,13 @@ class PerceptRoutingTest {
         env.executeAction("ambulance_a1",
                 jason.asSyntax.ASSyntax.parseStructure("preliminary_triage(patient1)"));
         assertThat(perceptsOf("ambulance_a1")).contains("triage_data(patient1,fracture,green)");
-        // the other ambulance perceives nothing about that assessment
         assertThat(perceptsOf("ambulance_a2")).noneMatch(p -> p.startsWith("triage_data"));
     }
 
     @Test
     void hospitalStaffOfOneHospitalNeverSeesAnotherHospital() {
         env.hospital("h1").patientArrived("patient1");
-        ticks(6); // let patient records exist
+        ticks(6);
         assertThat(perceptsOf("triage_nurse_h1")).contains("my_hospital(h1)");
         assertThat(perceptsOf("triage_nurse_h2")).contains("my_hospital(h2)")
                 .noneMatch(p -> p.contains("patient1"));
@@ -106,6 +105,37 @@ class PerceptRoutingTest {
     }
 
     @Test
+    void hospitalsPerceiveTheirOwnUnclaimedReservations() {
+        env.hospital("h1").reserveBed("patient1");
+        ticks((int) mednet.model.hospital.HospitalModel.RESERVATION_LEASE_TICKS + 2);
+
+        assertThat(perceptsOf("hospital_h1")).contains("reservation_expired(patient1)");
+        // ... and nobody else's: h2 sees nothing about a bed held at h1
+        assertThat(perceptsOf("hospital_h2")).noneMatch(p -> p.startsWith("reservation_expired"));
+        assertThat(perceptsOf("triage_nurse_h1")).noneMatch(p -> p.startsWith("reservation_expired"));
+    }
+
+    @Test
+    void doctorsPerceiveExamsAlreadyPerformedOnPatientsPresentHere() {
+        ticks(5);
+        env.hospital("h1").patientArrived("patient1");
+        env.hospital("h1").startExam("patient1", "xray", "xray_room", "doctor_h1_general");
+        ticks(4);
+        assertThat(perceptsOf("doctor_h1_general")).noneMatch(p -> p.startsWith("exam_completed"));
+
+        ticks(2);
+        assertThat(perceptsOf("doctor_h1_general")).contains(
+                "exam_done(patient1,xray)", "exam_completed(patient1,xray)");
+
+        env.hospital("h1").abortJobsFor("patient1");
+        assertThat(perceptsOf("doctor_h1_general"))
+                .contains("exam_completed(patient1,xray)")
+                .noneMatch(p -> p.startsWith("exam_done"));
+
+        assertThat(perceptsOf("doctor_h2_neurology")).noneMatch(p -> p.contains("patient1"));
+    }
+
+    @Test
     void equipmentManagerSeesLockStatesAndTicks() {
         ticks(3);
         env.hospital("h1").equipment("ct_scanner").orElseThrow().lock("doctor_h1_general", 3);
@@ -115,7 +145,6 @@ class PerceptRoutingTest {
                 "equipment(ct_scanner)",
                 "equipment_state(ct_scanner,locked(doctor_h1_general))",
                 "equipment_state(operating_room,free)");
-        // the manager of h2 sees only its own (all free) equipment
         assertThat(perceptsOf("equipment_manager_h2"))
                 .contains("equipment_state(ct_scanner,free)");
     }

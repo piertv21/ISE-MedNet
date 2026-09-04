@@ -1,12 +1,12 @@
 package mednet.model;
 
-import mednet.model.scenario.ScenarioConfig;
-import mednet.model.territorial.AmbulanceState;
-import mednet.model.territorial.TerritorialModel;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import mednet.model.scenario.ScenarioConfig;
+import mednet.model.territorial.AmbulanceState;
+import mednet.model.territorial.TerritorialModel;
 
 class TerritorialModelTest {
 
@@ -28,6 +28,7 @@ class TerritorialModelTest {
         assertThat(a1.x()).isEqualTo(17);
         assertThat(a1.y()).isEqualTo(16);
         assertThat(a1.isArrived()).isTrue();
+        // no further movement once arrived
         model.onTick(4);
         assertThat(a1.x()).isEqualTo(17);
     }

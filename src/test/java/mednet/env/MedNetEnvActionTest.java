@@ -58,7 +58,7 @@ class MedNetEnvActionTest {
     void malformedArgumentsFailWithoutModelChanges() throws Exception {
         assertThat(act("ambulance_a1", "move_to(somewhere, 1)")).isFalse();
         assertThat(act("hospital_h1", "reserve_bed(42)")).isFalse();
-        assertThat(act("triage_nurse_h1", "enqueue_patient(patient1)")).isFalse();
+        assertThat(act("triage_nurse_h1", "enqueue_patient(patient1)")).isFalse(); // missing arity
     }
 
     @Test

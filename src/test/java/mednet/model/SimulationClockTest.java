@@ -1,12 +1,12 @@
 package mednet.model;
 
-import mednet.model.clock.SimulationClock;
-import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+
+import mednet.model.clock.SimulationClock;
 
 class SimulationClockTest {
 
@@ -30,7 +30,7 @@ class SimulationClockTest {
         clock.tick();
         clock.finish();
         clock.tick();
-        clock.start(1); // a finished run cannot be restarted either
+        clock.start(1);
         assertThat(clock.isFinished()).isTrue();
         assertThat(clock.currentTick()).isEqualTo(1);
         assertThat(calls).containsExactly("tick@1");
@@ -39,9 +39,9 @@ class SimulationClockTest {
     @Test
     void startIsIdempotentAndStopIsSafe() {
         final SimulationClock clock = new SimulationClock();
-        clock.stop(); // never started: no-op
+        clock.stop();
         clock.start(10_000);
-        clock.start(10_000); // second start ignored
+        clock.start(10_000);
         clock.stop();
         clock.stop();
         assertThat(clock.currentTick()).isLessThanOrEqualTo(1);

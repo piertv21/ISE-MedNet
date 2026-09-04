@@ -1,14 +1,14 @@
 package mednet.env;
 
-import mednet.env.probe.ProbeRegistry;
-import mednet.model.patient.SeverityCode;
-import mednet.testsupport.TestProbe;
-import jason.asSyntax.ASSyntax;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import jason.asSyntax.ASSyntax;
+import mednet.env.probe.ProbeRegistry;
+import mednet.model.patient.SeverityCode;
+import mednet.testsupport.TestProbe;
 
 class SimulationCompletionTest {
 
@@ -44,7 +44,6 @@ class SimulationCompletionTest {
 
     @Test
     void theRunIsNotOverWhileAnyPatientIsStillInTheSystem() throws Exception {
-        ticks(25);
         assertThat(env.patients().all()).hasSize(2);
 
         discharge("patient1");
@@ -53,6 +52,22 @@ class SimulationCompletionTest {
         assertThat(env.isSimulationFinished()).isFalse();
         assertThat(env.clock().currentTick()).isEqualTo(28);
         assertThat(probe.count(e -> e.type().equals("simulation_finished"))).isZero();
+    }
+
+    @Test
+    void theRunIsNotOverWhileAHospitalStillHoldsABed() throws Exception {
+        ticks(25);
+        discharge("patient1");
+        discharge("patient2");
+        env.hospital("h2").reserveBed("patient1");
+
+        ticks(3);
+        assertThat(env.isSimulationFinished()).isFalse();
+        assertThat(probe.count(e -> e.type().equals("simulation_finished"))).isZero();
+
+        assertThat(env.hospital("h2").releaseBed("patient1")).isTrue();
+        env.clock().tick();
+        assertThat(env.isSimulationFinished()).isTrue();
     }
 
     @Test

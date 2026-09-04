@@ -10,7 +10,7 @@ import mednet.model.scenario.ScenarioConfig;
 
 class HospitalModelTest {
 
-    private HospitalModel h1;
+    private HospitalModel h1; // capacity 3
 
     @BeforeEach
     void setUp() {
@@ -37,6 +37,37 @@ class HospitalModelTest {
         assertThat(h1.dischargePatient("p1")).isTrue();
         assertThat(h1.bedsFree()).isEqualTo(3);
         assertThat(h1.isPresent("p1")).isFalse();
+    }
+
+    @Test
+    void aReservationNobodyClaimsEventuallyExpires() {
+        h1.reserveBed("p1");
+        h1.reserveBed("p2");
+        for (long tick = 1; tick <= HospitalModel.RESERVATION_LEASE_TICKS; tick++) {
+            h1.onTick(tick);
+            assertThat(h1.expiredReservations()).as("at tick %d", tick).isEmpty();
+        }
+        h1.patientArrived("p2");
+        h1.onTick(HospitalModel.RESERVATION_LEASE_TICKS + 1);
+        h1.onTick(HospitalModel.RESERVATION_LEASE_TICKS + 2);
+
+        assertThat(h1.expiredReservations()).containsExactly("p1");
+        assertThat(h1.bedsReserved()).isEqualTo(1);
+
+        assertThat(h1.releaseBed("p1")).isTrue();
+        assertThat(h1.expiredReservations()).isEmpty();
+        assertThat(h1.bedsReserved()).isZero();
+        h1.onTick(HospitalModel.RESERVATION_LEASE_TICKS + 3);
+        assertThat(h1.expiredReservations()).isEmpty();
+    }
+
+    @Test
+    void anOccupiedBedIsNotAReservationAndNeverExpires() {
+        h1.reserveBed("p1");
+        h1.patientArrived("p1");
+        h1.onTick(HospitalModel.RESERVATION_LEASE_TICKS + 10);
+        assertThat(h1.expiredReservations()).isEmpty();
+        assertThat(h1.bedsReserved()).isZero();
     }
 
     @Test
