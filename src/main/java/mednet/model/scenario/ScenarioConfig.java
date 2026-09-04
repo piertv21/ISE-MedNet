@@ -1,7 +1,7 @@
 package mednet.model.scenario;
 
 import mednet.model.patient.SeverityCode;
-
+import mednet.prolog.MedicalKb;
 import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
@@ -19,15 +19,13 @@ public final class ScenarioConfig {
     public static final List<String> STANDARD_EQUIPMENT =
             List.of("ct_scanner", "xray_room", "ecg_station", "lab", "operating_room");
 
-    private static final List<String> PATHOLOGIES =
-            List.of("cardiac_arrest", "stroke", "major_trauma", "fracture", "abdominal_pain");
+    private static final List<String> PATHOLOGIES = List.copyOf(MedicalKb.pathologies());
 
-    private static final java.util.Map<String, SeverityCode> DEFAULT_CODES = java.util.Map.of(
-            "cardiac_arrest", SeverityCode.RED,
-            "stroke", SeverityCode.RED,
-            "major_trauma", SeverityCode.YELLOW,
-            "fracture", SeverityCode.GREEN,
-            "abdominal_pain", SeverityCode.GREEN);
+    private static SeverityCode defaultCodeOf(final String pathology) {
+        return MedicalKb.defaultCode(pathology)
+                .map(SeverityCode::fromAtom)
+                .orElseThrow(() -> new IllegalStateException("No default_code/2 for " + pathology));
+    }
 
     private final String name;
     private final List<HospitalSpec> hospitals;
@@ -91,8 +89,7 @@ public final class ScenarioConfig {
         long tick = 5;
         for (int i = 1; i <= 5; i++) {
             final String pathology = PATHOLOGIES.get(random.nextInt(PATHOLOGIES.size()));
-            final SeverityCode trueCode = DEFAULT_CODES.get(pathology);
-
+            final SeverityCode trueCode = defaultCodeOf(pathology);
             final SeverityCode guess = random.nextInt(5) == 0 && trueCode.priority() < 3
                     ? SeverityCode.values()[trueCode.priority() + 1]
                     : trueCode;

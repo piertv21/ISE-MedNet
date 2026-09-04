@@ -1,6 +1,9 @@
 package mednet.model.hospital;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -8,6 +11,7 @@ public final class BedPool {
 
     private final int capacity;
     private final Set<String> reserved = new LinkedHashSet<>();
+    private final Map<String, Long> reservedSince = new LinkedHashMap<>();
     private final Set<String> occupied = new LinkedHashSet<>();
     private int walkInCounter;
 
@@ -69,6 +73,14 @@ public final class BedPool {
         return occupied.stream()
                 .filter(id -> id.startsWith("walk_in_"))
                 .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    public List<String> ageReservations(final long nowTick, final long leaseTicks) {
+        reserved.forEach(patient -> reservedSince.putIfAbsent(patient, nowTick));
+        reservedSince.keySet().retainAll(reserved);
+        return reserved.stream()
+                .filter(patient -> nowTick - reservedSince.get(patient) > leaseTicks)
+                .toList();
     }
 
     public boolean isReserved(final String patient) {

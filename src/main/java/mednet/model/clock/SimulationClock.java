@@ -7,10 +7,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * Global discrete simulation clock. In production it is driven by a single-thread
- * scheduler; in tests {@link #tick()} can be called manually for full determinism.
- */
 public final class SimulationClock {
 
     private final List<TickListener> listeners = new CopyOnWriteArrayList<>();
@@ -22,10 +18,6 @@ public final class SimulationClock {
         listeners.add(listener);
     }
 
-    /**
-     * Advances the clock by one tick and notifies every listener, in registration
-     * order. Once the clock is {@link #finish() finished} this is a no-op.
-     */
     public synchronized void tick() {
         if (finished) {
             return;
@@ -59,12 +51,6 @@ public final class SimulationClock {
         }
     }
 
-    /**
-     * Ends the run for good: no further tick is delivered, neither by the scheduler
-     * nor by a manual {@link #tick()}, and the clock can no longer be restarted, so
-     * the world keeps its final state. Idempotent, and safe to call from inside a
-     * tick — the scheduler is shut down gracefully, letting the current tick finish.
-     */
     public synchronized void finish() {
         if (finished) {
             return;
@@ -76,7 +62,6 @@ public final class SimulationClock {
         }
     }
 
-    /** Whether the run is over and the world is frozen on its final state. */
     public boolean isFinished() {
         return finished;
     }

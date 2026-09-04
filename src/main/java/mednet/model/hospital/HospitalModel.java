@@ -1,7 +1,9 @@
 package mednet.model.hospital;
 
+import mednet.env.probe.ProbeRegistry;
 import mednet.model.patient.SeverityCode;
 import mednet.model.scenario.ScenarioConfig;
+import mednet.prolog.MedicalKb;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -15,19 +17,9 @@ public final class HospitalModel {
 
     public static final long LEASE_TICKS = 60;
 
+    public static final long RESERVATION_LEASE_TICKS = 120;
+
     public static final int WALK_IN_STAY_TICKS = 50;
-
-    private static final Map<String, Integer> EXAM_TICKS = Map.of(
-            "ecg", 4,
-            "blood_lab", 6,
-            "ct_scan", 8,
-            "xray", 5);
-
-    private static final Map<SeverityCode, Integer> TREATMENT_TICKS = Map.of(
-            SeverityCode.RED, 20,
-            SeverityCode.YELLOW, 40,
-            SeverityCode.GREEN, 25,
-            SeverityCode.WHITE, 15);
 
     private final String id;
     private final List<String> specializations;
@@ -39,8 +31,10 @@ public final class HospitalModel {
     private final Set<String> presentPatients = new LinkedHashSet<>();
     private final Map<String, SeverityCode> triageResults = new LinkedHashMap<>();
     private final Set<String> lostReservations = new LinkedHashSet<>();
+    private final Set<String> expiredReservations = new LinkedHashSet<>();
     private final Map<String, String> leaseExpired = new LinkedHashMap<>();
     private final Map<String, Long> walkInDischargeTick = new LinkedHashMap<>();
+    private final Map<String, Set<String>> completedExams = new LinkedHashMap<>();
 
     public HospitalModel(final ScenarioConfig.HospitalSpec spec) {
         this.id = spec.id();
@@ -80,6 +74,7 @@ public final class HospitalModel {
     }
 
     public synchronized boolean releaseBed(final String patient) {
+        expiredReservations.remove(patient);
         return beds.releaseReservation(patient);
     }
 
@@ -106,6 +101,14 @@ public final class HospitalModel {
 
     public synchronized Set<String> lostReservations() {
         return Set.copyOf(lostReservations);
+    }
+
+    public synchronized Set<String> expiredReservations() {
+        return Set.copyOf(expiredReservations);
+    }
+
+    public synchronized int bedsReserved() {
+        return beds.reservedCount();
     }
 
     public synchronized boolean isPresent(final String patient) {
@@ -146,11 +149,11 @@ public final class HospitalModel {
 
     public synchronized boolean startExam(final String patient, final String exam, final String equipmentName,
             final String doctor) {
-        final Integer duration = EXAM_TICKS.get(exam);
-        if (duration == null || !presentPatients.contains(patient)) {
+        final Optional<Integer> duration = MedicalKb.examDuration(exam);
+        if (duration.isEmpty() || !presentPatients.contains(patient)) {
             return false;
         }
-        examJobs.add(new ExamJob(patient, exam, equipmentName, doctor, duration));
+        examJobs.add(new ExamJob(patient, exam, equipmentName, doctor, duration.get()));
         return true;
     }
 
@@ -159,7 +162,11 @@ public final class HospitalModel {
         if (code == null || !presentPatients.contains(patient)) {
             return false;
         }
-        treatmentJobs.add(new TreatmentJob(patient, doctor, TREATMENT_TICKS.get(code)));
+        final Optional<Integer> duration = MedicalKb.treatmentDuration(code.atom());
+        if (duration.isEmpty()) {
+            return false;
+        }
+        treatmentJobs.add(new TreatmentJob(patient, doctor, duration.get()));
         return true;
     }
 
@@ -170,6 +177,10 @@ public final class HospitalModel {
 
     public synchronized List<ExamJob> examJobsOf(final String doctor) {
         return examJobs.stream().filter(j -> j.doctor().equals(doctor)).toList();
+    }
+
+    public synchronized Set<String> completedExams(final String patient) {
+        return Set.copyOf(completedExams.getOrDefault(patient, Set.of()));
     }
 
     public synchronized List<TreatmentJob> treatmentJobsOf(final String doctor) {
@@ -183,12 +194,18 @@ public final class HospitalModel {
         beds.discharge(patient);
         triageResults.remove(patient);
         triage.remove(patient);
+        completedExams.remove(patient);
         abortJobsFor(patient);
         return true;
     }
 
     public synchronized void onTick(final long tick) {
         examJobs.forEach(ExamJob::tick);
+        examJobs.stream()
+                .filter(ExamJob::isDone)
+                .forEach(job -> completedExams
+                        .computeIfAbsent(job.patient(), p -> new LinkedHashSet<>())
+                        .add(job.exam()));
         treatmentJobs.forEach(TreatmentJob::tick);
         walkInDischargeTick.entrySet().removeIf(entry -> {
             if (tick >= entry.getValue()) {
@@ -201,6 +218,11 @@ public final class HospitalModel {
             final EquipmentLockState state = eq.state();
             if (!state.isFree() && tick - state.sinceTick() > LEASE_TICKS) {
                 leaseExpired.putIfAbsent(state.equipment(), state.owner());
+            }
+        }
+        for (final String patient : beds.ageReservations(tick, RESERVATION_LEASE_TICKS)) {
+            if (expiredReservations.add(patient)) {
+                ProbeRegistry.current().onEvent("reservation_expired", id, patient);
             }
         }
     }
