@@ -1,13 +1,12 @@
 [versions]
 jason = "3.2.1"
-# Same JADE artifact jason-interpreter itself is built against (see jason-lang/jason build.gradle).
-jade = "4.3"
+tuprolog = "4.1.1"
 junit = "5.11.4"
 assertj = "3.26.3"
 
 [libraries]
 jason-interpreter = { module = "io.github.jason-lang:jason-interpreter", version.ref = "jason" }
-jade = { module = "net.sf.ingenias:jade", version.ref = "jade" }
+tuprolog-core = { module = "it.unibo.alice.tuprolog:2p-core", version.ref = "tuprolog" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
