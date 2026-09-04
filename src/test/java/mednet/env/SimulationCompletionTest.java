@@ -44,6 +44,7 @@ class SimulationCompletionTest {
 
     @Test
     void theRunIsNotOverWhileAnyPatientIsStillInTheSystem() throws Exception {
+        ticks(25);
         assertThat(env.patients().all()).hasSize(2);
 
         discharge("patient1");
