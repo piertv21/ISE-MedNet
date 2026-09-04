@@ -1,41 +1,28 @@
 package mednet.rbac;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import mednet.prolog.PrologKb;
 
 public final class RbacPolicy {
 
-    private static final Map<String, Set<Role>> ALLOWED = Map.ofEntries(
-            Map.entry("move_to", Set.of(Role.AMBULANCE)),
-            Map.entry("preliminary_triage", Set.of(Role.AMBULANCE)),
-            Map.entry("load_patient", Set.of(Role.AMBULANCE)),
-            Map.entry("unload_patient", Set.of(Role.AMBULANCE)),
-            Map.entry("reserve_bed", Set.of(Role.HOSPITAL)),
-            Map.entry("release_bed", Set.of(Role.HOSPITAL)),
-            Map.entry("secondary_triage", Set.of(Role.TRIAGE_NURSE)),
-            Map.entry("enqueue_patient", Set.of(Role.TRIAGE_NURSE)),
-            Map.entry("dequeue_patient", Set.of(Role.TRIAGE_NURSE)),
-            Map.entry("requeue_front", Set.of(Role.TRIAGE_NURSE)),
-            Map.entry("lock_equipment", Set.of(Role.DOCTOR)),
-            Map.entry("unlock_equipment", Set.of(Role.DOCTOR)),
-            Map.entry("run_exam", Set.of(Role.DOCTOR)),
-            Map.entry("start_treatment", Set.of(Role.DOCTOR)),
-            Map.entry("abort_treatment", Set.of(Role.DOCTOR)),
-            Map.entry("discharge_patient", Set.of(Role.DOCTOR)),
-            Map.entry("force_release", Set.of(Role.EQUIPMENT_MANAGER)));
+    private static final Map<String, Boolean> DECISIONS = new ConcurrentHashMap<>();
 
     private RbacPolicy() {
     }
 
     public static Set<String> knownActions() {
-        return ALLOWED.keySet();
+        return new LinkedHashSet<>(PrologKb.allAtoms("Action", "known_action(Action)"));
     }
 
     public static boolean check(final String agentName, final String action) {
-        final Set<Role> allowedRoles = ALLOWED.get(action);
-        if (allowedRoles == null) {
+        if (agentName == null || action == null) {
             return false;
         }
-        return Role.fromAgentName(agentName).map(allowedRoles::contains).orElse(false);
+        return DECISIONS.computeIfAbsent(agentName + '/' + action,
+                key -> PrologKb.proves("can(" + PrologKb.quote(agentName) + ", " + PrologKb.quote(action) + ")"));
     }
 }

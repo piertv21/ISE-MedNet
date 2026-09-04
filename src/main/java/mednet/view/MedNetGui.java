@@ -1,9 +1,8 @@
 package mednet.view;
 
-import mednet.model.clock.SimulationClock;
-import mednet.model.hospital.HospitalModel;
-import mednet.model.patient.PatientRegistry;
-import mednet.model.territorial.TerritorialModel;
+import java.awt.BorderLayout;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -11,9 +10,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import java.awt.BorderLayout;
-import java.util.LinkedHashMap;
-import java.util.Map;
+
+import mednet.model.clock.SimulationClock;
+import mednet.model.hospital.HospitalModel;
+import mednet.model.patient.PatientRegistry;
+import mednet.model.territorial.TerritorialModel;
 
 public final class MedNetGui {
 

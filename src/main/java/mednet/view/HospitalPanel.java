@@ -1,9 +1,6 @@
 package mednet.view;
 
-import mednet.model.hospital.Equipment;
-import mednet.model.hospital.EquipmentLockState;
-import mednet.model.hospital.HospitalModel;
-import mednet.model.hospital.TriageEntry;
+import java.awt.BorderLayout;
 
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
@@ -11,7 +8,11 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
-import java.awt.BorderLayout;
+
+import mednet.model.hospital.Equipment;
+import mednet.model.hospital.EquipmentLockState;
+import mednet.model.hospital.HospitalModel;
+import mednet.model.hospital.TriageEntry;
 
 final class HospitalPanel extends JPanel {
 
