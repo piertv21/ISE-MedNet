@@ -1,12 +1,13 @@
-{ include("include/kb_medical.asl") }
+{ include("include/kb_bootstrap.asl") }
 { include("include/cnp_initiator.asl") }
 
 cnp_deadline(1500).
 
 +my_hospital(H)
    :  not ready
-   <- .concat("triage_nurse_", H, Service);
-      mednet.df.df_register(Service);
+   <- !load_medical_kb;
+      .concat("triage_nurse_", H, Service);
+      .df_register(Service);
       +ready;
       .print("[", H, "] triage nurse on duty").
 

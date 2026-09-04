@@ -1,7 +1,7 @@
 +my_hospital(H)
    :  not ready
    <- .concat("equipment_manager_", H, Service);
-      mednet.df.df_register(Service);
+      .df_register(Service);
       +ready;
       .print("[", H, "] equipment manager online").
 

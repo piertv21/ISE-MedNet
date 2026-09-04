@@ -1,12 +1,13 @@
-{ include("include/kb_medical.asl") }
+{ include("include/kb_bootstrap.asl") }
 { include("include/cnp_participant.asl") }
 
 +my_hospital(H)
    :  my_specialization(Spec) & not ready
-   <- .concat("doctor_", H, GenericService);
-      mednet.df.df_register(GenericService);
+   <- !load_medical_kb;
+      .concat("doctor_", H, GenericService);
+      .df_register(GenericService);
       .concat("doctor_", H, "_", Spec, SpecializedService);
-      mednet.df.df_register(SpecializedService);
+      .df_register(SpecializedService);
       +ready;
       .print("on duty at ", H, " (", Spec, ")").
 
@@ -26,25 +27,62 @@
 
 
 +!treat_patient(P, Pathology)
-   :  required_exams(Pathology, Exams) & .length(Exams, N)
-   <- +exams_pending(P, N);
-      for (.member(Exam, Exams)) {
-         !!do_exam(P, Exam);
-      };
-      .wait(all_exams_done(P));
-      !finalize(P).
+   :  treating(P, Code)
+   <- .findall(Exam, exam_completed(P, Exam), Done);
+      mednet.plan.care_stages(P, Pathology, Code, Done, Stages);
+      .print("[PLAN] ", P, " (", Pathology, ", ", Code, ", done: ", Done, "): ", Stages);
+      !run_stages(P, Stages).
 
-+!do_exam(P, Exam)
-   :  equipment_for(Exam, Equipment)
-   <- +my_exam(P, Exam);
-      !acquire(Equipment, P, Exam);
++!treat_patient(_, _).
+
+-!treat_patient(P, _)
+   :  treating(P, _)
+   <- .print("could not plan the care of ", P, "; retrying");
+      .wait(2000);
+      ?patient_pathology(P, Pathology);
+      !!treat_patient(P, Pathology).
+
++!run_stages(_, []).
++!run_stages(P, [Stage | Rest])
+   <- .length(Stage, Segments);
+      +stage_pending(P, Segments);
+      for (.member(Segment, Stage)) {
+         !!run_segment(P, Segment);
+      };
+      .wait(stage_done(P));
+      -stage_done(P);
+      !run_stages(P, Rest).
+
++!run_segment(P, Segment)
+   <- +my_segment(P, Segment);
+      for (.member(Step, Segment)) { !step(P, Step) };
+      -my_segment(P, Segment);
+      !stage_barrier(P).
+
++!step(P, acquire(Equipment))
+   <- !acquire(Equipment, P, Equipment);
       lock_equipment(Equipment);
-      +holding(Equipment, P, Exam);
-      run_exam(P, Exam, Equipment);
-      .wait(exam_done(P, Exam));
-      !release(Equipment, P, Exam);
-      -my_exam(P, Exam);
-      !exam_barrier(P).
+      +holding(Equipment, P, Equipment).
+
++!step(P, exam(Exam, Equipment))
+   <- run_exam(P, Exam, Equipment);
+      .wait(exam_done(P, Exam)).
+
++!step(P, release(Equipment))
+   <- !release(Equipment, P, Equipment).
+
++!step(P, treat)
+   <- start_treatment(P);
+      .wait(treatment_done(P)).
+
++!step(P, discharge)
+   <- !close_case(P).
+
+-!step(P, treat)
+   :  treating(P, _)
+   <- .print("treatment of ", P, " delayed; retrying");
+      .wait(2000);
+      !step(P, treat).
 
 +!acquire(Equipment, P, Use)
    :  treating(P, Code) & code_priority(Code, Priority) & my_hospital(H)
@@ -52,7 +90,7 @@
       .concat(P, "_", Use, ReqId);
       +req_id(P, Use, ReqId);
       .send(Manager, tell, request_equipment(ReqId, Equipment, Priority));
-      .wait(granted(ReqId, Equipment), 20000);   
+      .wait(granted(ReqId, Equipment), 20000);
       .abolish(granted(ReqId, Equipment)).
 
 +!release(Equipment, P, Use)
@@ -64,61 +102,41 @@
       .send(Manager, tell, released(ReqId, Equipment)).
 
 @barrier1[atomic]
-+!exam_barrier(P)
-   :  exams_pending(P, N) & N > 1
-   <- -exams_pending(P, N);
-      +exams_pending(P, N - 1).
++!stage_barrier(P)
+   :  stage_pending(P, N) & N > 1
+   <- -stage_pending(P, N);
+      +stage_pending(P, N - 1).
 @barrier2[atomic]
-+!exam_barrier(P)
-   :  exams_pending(P, 1)
-   <- -exams_pending(P, 1);
-      +all_exams_done(P).
-+!exam_barrier(_) <- true.   
++!stage_barrier(P)
+   :  stage_pending(P, 1)
+   <- -stage_pending(P, 1);
+      +stage_done(P).
++!stage_barrier(_) <- true.
 
--!do_exam(P, Exam)
-   :  holding(Equipment, P, Exam)
-   <- .print("exam ", Exam, " for ", P, " aborted; releasing ", Equipment);
-      !release(Equipment, P, Exam);
-      -my_exam(P, Exam);
-      !exam_barrier(P).
--!do_exam(P, Exam)
-   <- .abolish(my_exam(P, Exam));
-      .abolish(req_id(P, Exam, _));
-      !exam_barrier(P).
-
-+!finalize(P)
-   :  treating(P, Code) & treatment_equipment(Code, Equipment)
-   <- !acquire(Equipment, P, treatment);
-      lock_equipment(Equipment);
-      +holding(Equipment, P, treatment);
-      start_treatment(P);
-      .wait(treatment_done(P));
-      !release(Equipment, P, treatment);
-      !close_case(P).
-
-+!finalize(P)
-   :  treating(P, _)
-   <- start_treatment(P);
-      .wait(treatment_done(P));
-      !close_case(P).
-
-+!finalize(_) <- true.   
-
--!finalize(P)
-   :  treating(P, _)
-   <- .print("finalization of ", P, " delayed; retrying");
-      .wait(2000);
-      !finalize(P).
+-!run_segment(P, Segment)
+   :  .member(acquire(Equipment), Segment) & holding(Equipment, P, Equipment)
+   <- .print("segment of ", P, " aborted; releasing ", Equipment);
+      !release(Equipment, P, Equipment);
+      -my_segment(P, Segment);
+      !stage_barrier(P).
+-!run_segment(P, Segment)
+   :  .member(acquire(Equipment), Segment)
+   <- .abolish(my_segment(P, Segment));
+      .abolish(req_id(P, Equipment, _));
+      !stage_barrier(P).
+-!run_segment(P, Segment)
+   <- .abolish(my_segment(P, Segment));
+      !stage_barrier(P).
 
 +!close_case(P)
    :  my_hospital(H)
    <- discharge_patient(P);
       -treating(P, _);
-      .abolish(all_exams_done(P));
-      .abolish(exams_pending(P, _));
+      .abolish(stage_done(P));
+      .abolish(stage_pending(P, _));
       .print(P, " discharged");
       .concat("triage_nurse_", H, NurseService);
-      mednet.df.df_search(NurseService, [Nurse | _]);
+      .df_search(NurseService, [Nurse | _]);
       .send(Nurse, tell, treatment_completed(P)).
 
 +preempt_order(NewP, NewPathology)[source(Nurse)]
@@ -126,11 +144,11 @@
    <- .abolish(preempt_order(NewP, NewPathology));
       .print("[PREEMPT] dropping ", OldP, " (", OldCode, ") for red ", NewP);
       .drop_intention(treat_patient(OldP, _));
-      !cancel_exams(OldP);
+      !cancel_segments(OldP);
       abort_treatment(OldP);
       -treating(OldP, OldCode);
-      .abolish(exams_pending(OldP, _));
-      .abolish(all_exams_done(OldP));
+      .abolish(stage_pending(OldP, _));
+      .abolish(stage_done(OldP));
       ?patient_pathology(OldP, OldPathology);
       .send(Nurse, tell, requeue(OldP, OldPathology, OldCode));
       +treating(NewP, red);
@@ -146,10 +164,10 @@
    <- .abolish(preempt_order(NewP, NewPathology));
       .send(Nurse, tell, requeue(NewP, NewPathology, red)).
 
-+!cancel_exams(P)
-   :  my_exam(P, Exam)
-   <- .fail_goal(do_exam(P, Exam));
++!cancel_segments(P)
+   :  my_segment(P, Segment)
+   <- .fail_goal(run_segment(P, Segment));
       .wait(50);
-      !cancel_exams(P).
-+!cancel_exams(_) <- true.
--!cancel_exams(_) <- true.
+      !cancel_segments(P).
++!cancel_segments(_) <- true.
+-!cancel_segments(_) <- true.
