@@ -1,14 +1,29 @@
+@cnp_start_round[atomic]
 +!cnp_start(CnpId, Task, PreferredService, FallbackService)
-   <- mednet.df.df_search(PreferredService, Preferred);
+   :  not cnp_running(CnpId)
+   <- +cnp_running(CnpId);
+      !!cnp_round(CnpId, Task, PreferredService, FallbackService).
+
++!cnp_start(CnpId, _, _, _)
+   <- .print("[CNP] a round for ", CnpId, " is already in flight; request ignored").
+
++!cnp_round(CnpId, Task, PreferredService, FallbackService)
+   <- .df_search(PreferredService, Preferred);
       if (.empty(Preferred)) {
-         mednet.df.df_search(FallbackService, Found);
+         .df_search(FallbackService, Found);
       } else {
          Found = Preferred;
       };
       .findall(A, (.member(A, Found) & not excluded(CnpId, A)), Eligible);
       !cnp_announce(CnpId, Task, Eligible).
 
-+!cnp_announce(CnpId, Task, []) <- !cnp_no_winner(CnpId, Task).
+-!cnp_round(CnpId, Task, _, _)
+   <- !cnp_cleanup(CnpId);
+      !cnp_no_winner(CnpId, Task).
+
++!cnp_announce(CnpId, Task, [])
+   <- !cnp_cleanup(CnpId);
+      !cnp_no_winner(CnpId, Task).
 +!cnp_announce(CnpId, Task, Participants)
    <- .print("[CNP] cfp ", CnpId, " -> ", Participants);
       .send(Participants, tell, cfp(CnpId, Task));
@@ -33,4 +48,5 @@
 
 +!cnp_cleanup(CnpId)
    <- .abolish(propose(CnpId, _));
-      .abolish(refuse(CnpId, _)).
+      .abolish(refuse(CnpId, _));
+      .abolish(cnp_running(CnpId)).

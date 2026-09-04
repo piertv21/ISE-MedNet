@@ -1,8 +1,10 @@
-{ include("include/kb_medical.asl") }
+{ include("include/kb_bootstrap.asl") }
 { include("include/cnp_initiator.asl") }
 
 call_counter(0).
 cnp_deadline(2000).
+
+!load_medical_kb.
 
 @cc_next_id[atomic]
 +!next_call_id(Id)
@@ -32,7 +34,7 @@ cnp_deadline(2000).
 
 +!dispatch_ambulance(CallId)
    :  emergency(CallId, Patient, Pos, _)
-   <- mednet.df.df_search("ambulance", Ambulances);
+   <- .df_search("ambulance", Ambulances);
       !pick_free(Ambulances, Amb);
       +busy_amb(Amb);
       +dispatched(CallId, Amb);
@@ -51,8 +53,10 @@ cnp_deadline(2000).
       -busy_amb(A).
 
 +triage_report(CallId, Pathology, Code, Pos)[source(Amb)]
-   :  emergency(CallId, Patient, _, _) & requires_specialization(Pathology, Spec)
+   :  emergency(CallId, Patient, _, _)
    <- .abolish(triage_report(CallId, Pathology, Code, Pos));
+      !load_medical_kb;
+      ?requires_specialization(Pathology, Spec);
       -+emergency_code(CallId, Code);
       .print("[CC] on-site triage for ", CallId, ": ", Pathology, ", code ", Code);
       .concat("hospital_", Spec, SpecializedService);
@@ -60,9 +64,25 @@ cnp_deadline(2000).
                  SpecializedService, "hospital").
 
 +!cnp_awarded(CallId, Hospital, admission(CallId, Patient, _, _, _))
+   :  settled(CallId)
+   <- .print("[CC] ", CallId, " already delivered; cancelling the admission at ", Hospital);
+      .send(Hospital, tell, cancel_admission(CallId, Patient)).
+
++!cnp_awarded(CallId, Hospital, admission(CallId, Patient, _, _, _))
+   :  dispatched(CallId, Amb) & admitted_to(CallId, Previous) & Previous \== Hospital
+   <- .print("[CC] ", CallId, " moved from ", Previous, " to ", Hospital);
+      .send(Previous, tell, cancel_admission(CallId, Patient));
+      -+admitted_to(CallId, Hospital);
+      .send(Amb, tell, transport_to(CallId, Hospital)).
+
++!cnp_awarded(CallId, Hospital, admission(CallId, Patient, _, _, _))
    :  dispatched(CallId, Amb)
    <- -+admitted_to(CallId, Hospital);
       .send(Amb, tell, transport_to(CallId, Hospital)).
+
++!cnp_no_winner(CallId, admission(CallId, _, _, _, _))
+   :  settled(CallId)
+   <- true.
 
 +!cnp_no_winner(CallId, admission(CallId, Patient, Pathology, Code, Pos))
    <- .print("[CNP-NET] no hospital can admit ", CallId, "; retrying");
@@ -70,6 +90,20 @@ cnp_deadline(2000).
       .wait(1500);
       !cnp_start(CallId, admission(CallId, Patient, Pathology, Code, Pos),
                  "hospital", "hospital").
+
++delivered(CallId, Hospital)[source(Amb)]
+   <- .abolish(delivered(CallId, Hospital));
+      +settled(CallId);
+      -+admitted_to(CallId, Hospital);
+      .print("[CC] ", CallId, " delivered to ", Hospital, "; negotiation closed");
+      .abolish(excluded(CallId, _));
+      .abolish(emergency(CallId, _, _, _));
+      .abolish(emergency_code(CallId, _));
+      .abolish(dispatched(CallId, _)).
+
++divert_request(CallId)[source(_)]
+   :  settled(CallId)
+   <- .abolish(divert_request(CallId)).
 
 +divert_request(CallId)[source(H)]
    :  emergency(CallId, Patient, _, Pathology) & emergency_code(CallId, Code)
@@ -96,6 +130,10 @@ cnp_deadline(2000).
       .print("[CC] pickup failed for ", CallId, "; re-dispatching");
       .wait(500);
       !dispatch_ambulance(CallId).
+
++transport_failed(CallId, H)
+   :  settled(CallId)
+   <- .abolish(transport_failed(CallId, H)).
 
 +transport_failed(CallId, H)[source(A)]
    :  admitted_to(CallId, H) & emergency(CallId, Patient, _, Pathology)

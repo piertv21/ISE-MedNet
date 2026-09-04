@@ -2,7 +2,7 @@ status(free).
 
 !setup.
 +!setup
-   <- mednet.df.df_register("ambulance");
+   <- .df_register("ambulance");
       .print("ambulance in service").
 
 +!pickup(CallId, Patient, pos(X, Y))[source(control_center)]
@@ -40,9 +40,9 @@ status(free).
    :  hospital_info(Hospital, Nurse, HX, HY)
    <- move_to(HX, HY);
       .wait(at_target(HX, HY));
-      !handover(CallId, Nurse).
+      !handover(CallId, Hospital, Nurse).
 
-+!handover(CallId, Nurse)
++!handover(CallId, Hospital, Nurse)
    <- ?carrying(Patient);
       ?triage_data(Patient, Pathology, Code);
       unload_patient(Patient);
@@ -50,6 +50,7 @@ status(free).
       .send(Nurse, tell, handover(CallId, Patient, Pathology, Code));
       .abolish(transporting(CallId, _));
       -+status(free);
+      .send(control_center, tell, delivered(CallId, Hospital));
       .send(control_center, tell, ambulance_free).
 
 -!do_transport(CallId, Hospital)
