@@ -1,26 +1,27 @@
 package mednet.env;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import jason.asSyntax.ASSyntax;
-import jason.asSyntax.Literal;
-import jason.asSyntax.parser.ParseException;
-import mednet.model.clock.SimulationClock;
-import mednet.model.hospital.Equipment;
 import mednet.model.hospital.EquipmentLockState;
+import mednet.model.hospital.Equipment;
 import mednet.model.hospital.ExamJob;
 import mednet.model.hospital.HospitalModel;
 import mednet.model.hospital.TreatmentJob;
 import mednet.model.hospital.TriageEntry;
+import mednet.model.clock.SimulationClock;
+import mednet.model.patient.PatientRecord;
 import mednet.model.patient.PatientRegistry;
 import mednet.model.territorial.AmbulanceState;
 import mednet.model.territorial.HospitalSite;
 import mednet.model.territorial.TerritorialModel;
 import mednet.rbac.AgentNames;
 import mednet.rbac.Role;
+import jason.asSyntax.ASSyntax;
+import jason.asSyntax.Literal;
+import jason.asSyntax.parser.ParseException;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 final class PerceptRouter {
 
@@ -114,6 +115,9 @@ final class PerceptRouter {
             for (final String patient : hospital.lostReservations()) {
                 out.add(lit("reservation_lost(%s)", patient));
             }
+            for (final String patient : hospital.expiredReservations()) {
+                out.add(lit("reservation_expired(%s)", patient));
+            }
         });
     }
 
@@ -135,6 +139,11 @@ final class PerceptRouter {
             AgentNames.specializationOf(name)
                     .ifPresent(spec -> out.add(lit("my_specialization(%s)", spec)));
             addPatientPathologies(hospital, out);
+            for (final String patient : hospital.presentPatients()) {
+                for (final String exam : hospital.completedExams(patient)) {
+                    out.add(lit("exam_completed(%s, %s)", patient, exam));
+                }
+            }
             for (final ExamJob job : hospital.examJobsOf(name)) {
                 out.add(job.isDone()
                         ? lit("exam_done(%s, %s)", job.patient(), job.exam())

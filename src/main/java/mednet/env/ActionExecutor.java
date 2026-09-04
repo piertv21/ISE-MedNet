@@ -15,6 +15,7 @@ import mednet.model.patient.SeverityCode;
 import mednet.model.territorial.AmbulanceState;
 import mednet.model.territorial.HospitalSite;
 import mednet.model.territorial.TerritorialModel;
+import mednet.prolog.MedicalKb;
 import mednet.rbac.AgentNames;
 
 final class ActionExecutor {
@@ -229,11 +230,13 @@ final class ActionExecutor {
             if (code.isEmpty()) {
                 return false;
             }
-            if (code.get() == SeverityCode.RED) {
-                final boolean ownsOr = hospital.equipment("operating_room")
+            
+            final Optional<String> required = MedicalKb.treatmentEquipment(code.get().atom());
+            if (required.isPresent()) {
+                final boolean ownsIt = hospital.equipment(required.get())
                         .map(eq -> agent.equals(eq.state().owner()))
                         .orElse(false);
-                if (!ownsOr) {
+                if (!ownsIt) {
                     return false;
                 }
             }

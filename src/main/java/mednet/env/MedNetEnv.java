@@ -1,21 +1,5 @@
 package mednet.env;
 
-import java.awt.GraphicsEnvironment;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.swing.SwingUtilities;
-
-import jason.asSyntax.Literal;
-import jason.asSyntax.Structure;
-import jason.environment.Environment;
 import mednet.env.probe.ProbeRegistry;
 import mednet.model.clock.SimulationClock;
 import mednet.model.hospital.HospitalModel;
@@ -26,13 +10,23 @@ import mednet.model.scenario.ScenarioGenerator;
 import mednet.model.territorial.TerritorialModel;
 import mednet.rbac.RbacPolicy;
 import mednet.view.MedNetGui;
+import jason.asSyntax.Literal;
+import jason.asSyntax.Structure;
+import jason.environment.Environment;
+
+import javax.swing.SwingUtilities;
+import java.awt.GraphicsEnvironment;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MedNetEnv extends Environment {
 
     private static final Logger LOGGER = Logger.getLogger(MedNetEnv.class.getName());
     private static volatile MedNetEnv instance;
-
-    public static final String READY_PORT_PROPERTY = "mednet.ready.port";
 
     private ScenarioConfig config;
     private TerritorialModel territorial;
@@ -92,8 +86,9 @@ public class MedNetEnv extends Environment {
         hospitals.values().forEach(h -> clock.register(h::onTick));
         clock.register(generator::onTick);
         clock.register(tick -> informAgsEnvironmentChanged());
-
-        completion = new CompletionWatcher(generator, patients, clock, this::onSimulationFinished);
+        
+        completion = new CompletionWatcher(generator, patients, hospitals, clock,
+                this::onSimulationFinished);
         clock.register(completion);
 
         if (guiRequested && !GraphicsEnvironment.isHeadless()) {
@@ -107,19 +102,6 @@ public class MedNetEnv extends Environment {
         final String summary = "MedNetEnv up: scenario=" + config.name() + " seed=" + seed
                 + " hospitals=" + hospitals.keySet() + (manualClock ? " (manual clock)" : "");
         LOGGER.info(summary);
-        signalReady();
-    }
-
-    private static void signalReady() {
-        final String port = System.getProperty(READY_PORT_PROPERTY);
-        if (port == null) {
-            return;
-        }
-        try (Socket ignored = new Socket(InetAddress.getLoopbackAddress(), Integer.parseInt(port))) {
-            // the connection itself is the handshake; there is nothing to write
-        } catch (final IOException | RuntimeException e) {
-            LOGGER.log(Level.WARNING, "could not signal readiness on port " + port, e);
-        }
     }
 
     @Override
@@ -159,7 +141,8 @@ public class MedNetEnv extends Environment {
     private void onSimulationFinished() {
         final long lastTick = clock.currentTick();
         LOGGER.info(() -> "Simulation finished at tick " + lastTick
-                + ": all " + patients.all().size() + " patients discharged, clock halted");
+                + ": all " + patients.all().size()
+                + " patients discharged, every bed free again, clock halted");
         if (gui != null) {
             gui.markFinished(lastTick);
         }
