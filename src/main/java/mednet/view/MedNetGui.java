@@ -54,7 +54,7 @@ public final class MedNetGui {
     }
 
     private void refresh() {
-        statusLabel.setText(" tick: " + clock.currentTick());
+        statusLabel.setText(" Tick: " + clock.currentTick());
         territorialPanel.repaint();
         hospitalPanels.values().forEach(HospitalPanel::refresh);
     }
@@ -63,7 +63,7 @@ public final class MedNetGui {
         SwingUtilities.invokeLater(() -> {
             refresh();
             timer.stop();
-            statusLabel.setText(" tick: " + lastTick
+            statusLabel.setText(" Tick: " + lastTick
                     + " — simulation finished: every patient has been discharged");
         });
     }
