@@ -51,5 +51,3 @@ permitted(doctor, discharge_patient).
 permitted(equipment_manager, force_release).
 
 can(Agent, Action) :- role_of(Agent, Role), permitted(Role, Action).
-
-known_action(Action) :- permitted(_, Action).

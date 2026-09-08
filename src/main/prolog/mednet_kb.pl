@@ -3,7 +3,10 @@ code_priority(yellow, 1).
 code_priority(green, 2).
 code_priority(white, 3).
 
-severity_code(C) :- code_priority(C, _).
+admission_weights(red,    30, 2000).
+admission_weights(yellow, 20,  800).
+admission_weights(green,  10,  300).
+admission_weights(white,  10,  300).
 
 requires_specialization(cardiac_arrest, cardiology).
 requires_specialization(stroke, neurology).

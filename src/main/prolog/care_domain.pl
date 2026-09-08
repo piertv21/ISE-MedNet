@@ -103,4 +103,10 @@ parallel_run(Rest, _, [], Rest).
 
 exam_segment(Segment) :- member(exam(_, _), Segment).
 
+plan_length(Stages, N) :-
+    findall(Step,
+            (member(Stage, Stages), member(Segment, Stage), member(Step, Segment)),
+            Steps),
+    length(Steps, N).
+
 segment_equipment(Segment, Equipment) :- member(acquire(Equipment), Segment), !.
