@@ -20,7 +20,14 @@ cnp_deadline(2000).
       !dispatch_ambulance(CallId).
 
 +!dispatch_ambulance(CallId)
-   :  emergency(CallId, Patient, pos(X, Y), _)
+   :  emergency(CallId, Patient, Pos, _)
+   <- !claim_ambulance(CallId, Amb);
+      .print("[CC] dispatching ", Amb, " for ", CallId);
+      .send(Amb, achieve, pickup(CallId, Patient, Pos)).
+
+@cc_claim_nearest[atomic]
++!claim_ambulance(CallId, Amb)
+   :  emergency(CallId, _, pos(X, Y), _)
       & .findall(d(Dist, A),
                  (ambulance_pos(A, pos(AX, AY)) & not busy_amb(A)
                   & Dist = math.abs(AX - X) + math.abs(AY - Y)),
@@ -28,25 +35,23 @@ cnp_deadline(2000).
       & not .empty(Candidates)
    <- .min(Candidates, d(_, Amb));
       +busy_amb(Amb);
-      +dispatched(CallId, Amb);
-      .print("[CC] dispatching ", Amb, " for ", CallId);
-      .send(Amb, achieve, pickup(CallId, Patient, pos(X, Y))).
+      +dispatched(CallId, Amb).
 
-+!dispatch_ambulance(CallId)
-   :  emergency(CallId, Patient, Pos, _)
++!claim_ambulance(CallId, Amb)
    <- .df_search("ambulance", Ambulances);
-      !pick_free(Ambulances, Amb);
-      +busy_amb(Amb);
-      +dispatched(CallId, Amb);
-      .print("[CC] dispatching ", Amb, " for ", CallId);
-      .send(Amb, achieve, pickup(CallId, Patient, Pos)).
+      !claim_from(Ambulances, CallId, Amb).
+
+@cc_claim_df[atomic]
++!claim_from(Ambulances, CallId, Amb)
+   :  .findall(A, (.member(A, Ambulances) & not busy_amb(A)), [Amb | _])
+   <- +busy_amb(Amb);
+      +dispatched(CallId, Amb).
+
++!claim_from(_, _, _) <- .fail.
 
 -!dispatch_ambulance(CallId)
    <- .wait(1000);
       !dispatch_ambulance(CallId).
-
-+!pick_free([A | _], A) : not busy_amb(A) <- true.
-+!pick_free([_ | T], A) <- !pick_free(T, A).
 
 +ambulance_free[source(A)]
    <- .abolish(ambulance_free[source(A)]);
@@ -128,12 +133,17 @@ cnp_deadline(2000).
                  "hospital", "hospital").
 
 +pickup_failed(CallId)[source(A)]
+   :  dispatched(CallId, A)
    <- .abolish(pickup_failed(CallId));
       -busy_amb(A);
       -dispatched(CallId, A);
       .print("[CC] pickup failed for ", CallId, "; re-dispatching");
       .wait(500);
       !dispatch_ambulance(CallId).
+
++pickup_failed(CallId)[source(A)]
+   <- .abolish(pickup_failed(CallId));
+      .print("[CC] ", A, " refused ", CallId, "; it is on another mission").
 
 +transport_failed(CallId, H)
    :  settled(CallId)

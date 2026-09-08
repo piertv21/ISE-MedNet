@@ -6,7 +6,7 @@ status(free).
       .print("ambulance in service").
 
 +!pickup(CallId, Patient, pos(X, Y))[source(control_center)]
-   :  status(free)
+   :  status(free) & not carrying(_)
    <- -+status(busy(CallId));
       move_to(X, Y);
       .wait(at_target(X, Y));
@@ -16,6 +16,11 @@ status(free).
       ?triage_data(Patient, Pathology, Code);
       .print("picked up ", Patient, ": ", Pathology, " (prelim code ", Code, ")");
       .send(control_center, tell, triage_report(CallId, Pathology, Code, pos(X, Y))).
+
+-!pickup(CallId, _, _)
+   :  status(busy(Other)) & Other \== CallId
+   <- .print("cannot take ", CallId, ": still on ", Other);
+      .send(control_center, tell, pickup_failed(CallId)).
 
 -!pickup(CallId, _, _)
    <- .print("pickup failed for ", CallId);
