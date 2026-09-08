@@ -83,19 +83,7 @@ public final class BedPool {
                 .toList();
     }
 
-    public boolean isReserved(final String patient) {
-        return reserved.contains(patient);
-    }
-
-    public boolean isOccupied(final String patient) {
-        return occupied.contains(patient);
-    }
-
     public int reservedCount() {
         return reserved.size();
-    }
-
-    public int occupiedCount() {
-        return occupied.size();
     }
 }

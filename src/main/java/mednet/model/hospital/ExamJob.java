@@ -38,6 +38,10 @@ public final class ExamJob {
         return done;
     }
 
+    public int remainingTicks() {
+        return Math.max(0, remainingTicks);
+    }
+
     void tick() {
         if (!done && --remainingTicks <= 0) {
             done = true;

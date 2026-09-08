@@ -10,10 +10,6 @@ public final class Equipment {
         this.name = name;
     }
 
-    public String name() {
-        return name;
-    }
-
     public synchronized boolean lock(final String agent, final long nowTick) {
         if (owner == null) {
             owner = agent;

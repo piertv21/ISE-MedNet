@@ -95,10 +95,6 @@ public final class HospitalModel {
         return stolen;
     }
 
-    public synchronized void clearLostReservation(final String patient) {
-        lostReservations.remove(patient);
-    }
-
     public synchronized Set<String> lostReservations() {
         return Set.copyOf(lostReservations);
     }

@@ -34,15 +34,7 @@ public final class TriageQueue {
         return found;
     }
 
-    public synchronized Optional<TriageEntry> peek() {
-        return entries.isEmpty() ? Optional.empty() : Optional.of(entries.get(0));
-    }
-
     public synchronized List<TriageEntry> snapshot() {
         return List.copyOf(entries);
-    }
-
-    public synchronized int size() {
-        return entries.size();
     }
 }
