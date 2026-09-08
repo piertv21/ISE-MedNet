@@ -1,6 +1,8 @@
 package mednet.rbac;
 
+import mednet.prolog.PrologKb;
 import org.junit.jupiter.api.Test;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -50,7 +52,8 @@ class RbacPolicyTest {
 
     @Test
     void policyCoversEveryKnownAction() {
-        assertThat(RbacPolicy.knownActions()).isEqualTo(EXPECTED_OWNER.keySet());
+        assertThat(PrologKb.allAtoms("Action", "permitted(_, Action)"))
+                .containsExactlyInAnyOrderElementsOf(EXPECTED_OWNER.keySet());
     }
 
     @Test
