@@ -25,7 +25,6 @@
       .print("taking charge of ", P, " (", Pathology, ", code ", Code, ")");
       !!treat_patient(P, Pathology).
 
-
 +!treat_patient(P, Pathology)
    :  treating(P, Code)
    <- .findall(Exam, exam_completed(P, Exam), Done);
@@ -100,6 +99,18 @@
       -req_id(P, Use, ReqId);
       .concat("equipment_manager_", H, Manager);
       .send(Manager, tell, released(ReqId, Equipment)).
+
++grant_revoked(ReqId, Equipment)[source(_)]
+   <- .abolish(grant_revoked(ReqId, Equipment));
+      !abort_acquire(ReqId, Equipment).
+
++!abort_acquire(ReqId, Equipment)
+   :  req_id(P, Equipment, ReqId) & not holding(Equipment, P, Equipment)
+   <- .abolish(granted(ReqId, Equipment));   // a grant that raced in is void
+      .print("grant of ", Equipment, " for ", P, " was revoked; aborting the segment");
+      .fail_goal(acquire(Equipment, P, Equipment)).
++!abort_acquire(_, _) <- true.
+-!abort_acquire(_, _) <- true.
 
 @barrier1[atomic]
 +!stage_barrier(P)

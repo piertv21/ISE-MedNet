@@ -12,14 +12,16 @@
       +ready;
       .print("[", H, "] registered in the DF").
 
-+!make_bid(CnpId, admission(_CallId, _Patient, Pathology, _Code, pos(X, Y)), Bid)
++!make_bid(CnpId, admission(_CallId, _Patient, Pathology, Code, pos(X, Y)), Bid)
    :  ready & beds_free(B) & B > 0 & my_pos(HX, HY) & beds_capacity(Cap)
+      & admission_weights(Code, DistWeight, SpecPenalty)
    <- if (requires_specialization(Pathology, S) & my_specialization(S)) {
          Penalty = 0;
       } else {
-         Penalty = 500;
+         Penalty = SpecPenalty;
       };
-      Bid = (math.abs(HX - X) + math.abs(HY - Y)) * 10 + (Cap - B) * 100 / Cap + Penalty.
+      Bid = (math.abs(HX - X) + math.abs(HY - Y)) * DistWeight
+            + (Cap - B) * 100 / Cap + Penalty.
 
 +!on_award(CnpId, admission(CallId, Patient, _, _, _))
    :  my_hospital(H) & (arrived(Patient) | inbound_case(_, Patient, _))

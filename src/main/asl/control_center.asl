@@ -101,6 +101,10 @@ cnp_deadline(2000).
       .abolish(emergency_code(CallId, _));
       .abolish(dispatched(CallId, _)).
 
++admission_confirmed(CnpId, CallId)[source(H)]
+   <- .abolish(admission_confirmed(CnpId, CallId));
+      .print("[CC] ", H, " is holding the bed for ", CallId).
+
 +divert_request(CallId)[source(_)]
    :  settled(CallId)
    <- .abolish(divert_request(CallId)).
