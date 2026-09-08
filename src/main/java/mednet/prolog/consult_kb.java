@@ -15,10 +15,8 @@ public class consult_kb extends DefaultInternalAction {
     private static final List<String[]> KNOWLEDGE = List.of(
             new String[] {"code_priority(C, P)", "code_priority(C, P)"},
             new String[] {"requires_specialization(Path, S)", "requires_specialization(Path, S)"},
-            new String[] {"default_code(Path, C)", "default_code(Path, C)"},
-            new String[] {"required_exams(Path, Exams)", "required_exams(Path, Exams)"},
-            new String[] {"equipment_for(E, Eq)", "equipment_for(E, Eq)"},
-            new String[] {"treatment_equipment(C, Eq)", "treatment_equipment(C, Eq)"},
+            new String[] {"admission_weights(C, DistW, SpecPenalty)",
+                    "admission_weights(C, DistW, SpecPenalty)"},
             new String[] {"protocol_max_parallel_patients(R, N)", "protocol_max_parallel_patients(R, N)"},
             new String[] {"protocol_preemptable(C)", "protocol_preemptable(C)"});
 

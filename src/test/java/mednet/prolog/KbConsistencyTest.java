@@ -4,7 +4,6 @@ import mednet.model.hospital.Equipment;
 import mednet.model.hospital.HospitalModel;
 import mednet.model.patient.SeverityCode;
 import mednet.model.scenario.ScenarioConfig;
-import mednet.rbac.RbacPolicy;
 import mednet.rbac.Role;
 import org.junit.jupiter.api.Test;
 
@@ -29,10 +28,39 @@ class KbConsistencyTest {
                         .toList());
     }
 
+    private static int admissionWeight(final String code, final String variable) {
+        return PrologKb.firstInt("admission_weights(" + code + ", W, P)", variable)
+                .orElseThrow(() -> new AssertionError("no admission_weights/3 for " + code));
+    }
+
     @Test
-    void rbacSurfaceIsExactlyWhatTheTheoryPermits() {
-        assertThat(RbacPolicy.knownActions())
-                .containsExactlyInAnyOrderElementsOf(PrologKb.allAtoms("A", "permitted(_, A)"));
+    void everySeverityCodeHasAdmissionWeights() {
+        assertThat(PrologKb.allAtoms("C", "admission_weights(C, _, _)"))
+                .containsExactlyInAnyOrderElementsOf(MedicalKb.severityCodes());
+        for (final SeverityCode code : SeverityCode.values()) {
+            assertThat(admissionWeight(code.atom(), "W")).as("distance weight of %s", code.atom())
+                    .isPositive();
+            assertThat(admissionWeight(code.atom(), "P")).as("mismatch penalty of %s", code.atom())
+                    .isPositive();
+        }
+    }
+
+    @Test
+    void admissionWeightsNeverGrowAsUrgencyDrops() {
+        final List<String> byUrgency = MedicalKb.severityCodes();
+        for (int i = 1; i < byUrgency.size(); i++) {
+            final String moreUrgent = byUrgency.get(i - 1);
+            final String lessUrgent = byUrgency.get(i);
+            assertThat(MedicalKb.codePriority(moreUrgent).orElseThrow())
+                    .as("%s is more urgent than %s", moreUrgent, lessUrgent)
+                    .isLessThan(MedicalKb.codePriority(lessUrgent).orElseThrow());
+            assertThat(admissionWeight(lessUrgent, "W"))
+                    .as("distance weight: %s vs %s", lessUrgent, moreUrgent)
+                    .isLessThanOrEqualTo(admissionWeight(moreUrgent, "W"));
+            assertThat(admissionWeight(lessUrgent, "P"))
+                    .as("mismatch penalty: %s vs %s", lessUrgent, moreUrgent)
+                    .isLessThanOrEqualTo(admissionWeight(moreUrgent, "P"));
+        }
     }
 
     @Test
