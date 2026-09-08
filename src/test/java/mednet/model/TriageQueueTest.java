@@ -41,7 +41,7 @@ class TriageQueueTest {
         queue.remove("victim");
         queue.enqueue("critical", SeverityCode.RED, 5);
         queue.requeueFront("victim", SeverityCode.YELLOW, 10);
-        assertThat(queue.peek().orElseThrow().patient()).isEqualTo("critical");
+        assertThat(queue.snapshot().get(0).patient()).isEqualTo("critical");
     }
 
     @Test
@@ -50,8 +50,7 @@ class TriageQueueTest {
         queue.enqueue("p", SeverityCode.WHITE, 1);
         assertThat(queue.remove("p")).isPresent();
         assertThat(queue.remove("p")).isEmpty();
-        assertThat(queue.size()).isZero();
-        assertThat(queue.peek()).isEmpty();
+        assertThat(queue.snapshot()).isEmpty();
     }
 
     @Test

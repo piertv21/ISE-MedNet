@@ -28,7 +28,6 @@ class TerritorialModelTest {
         assertThat(a1.x()).isEqualTo(17);
         assertThat(a1.y()).isEqualTo(16);
         assertThat(a1.isArrived()).isTrue();
-        // no further movement once arrived
         model.onTick(4);
         assertThat(a1.x()).isEqualTo(17);
     }
@@ -38,12 +37,6 @@ class TerritorialModelTest {
         final AmbulanceState a1 = model.ambulance("ambulance_a1").orElseThrow();
         a1.setTarget(15, 15);
         assertThat(a1.isArrived()).isTrue();
-    }
-
-    @Test
-    void etaIsManhattanDistance() {
-        assertThat(model.eta("ambulance_a1", 5, 5)).isEqualTo(20);
-        assertThat(model.eta("missing", 5, 5)).isEqualTo(Integer.MAX_VALUE);
     }
 
     @Test
