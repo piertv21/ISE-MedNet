@@ -1,11 +1,12 @@
 package mednet.model.scenario;
 
-import mednet.model.patient.SeverityCode;
-import mednet.prolog.MedicalKb;
-import java.util.List;
-import java.util.Random;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Random;
+
+import mednet.model.patient.SeverityCode;
+import mednet.prolog.MedicalKb;
 
 public final class ScenarioConfig {
 
@@ -78,6 +79,7 @@ public final class ScenarioConfig {
             case "e2e" -> e2eScenario();
             case "preemption" -> preemptionScenario();
             case "divert" -> divertScenario();
+            case "severity" -> severityScenario();
             case "empty" -> new ScenarioConfig("empty", standardHospitals(), standardAmbulances(), List.of());
             default -> throw new IllegalArgumentException("Unknown scenario: " + name);
         };
@@ -125,6 +127,17 @@ public final class ScenarioConfig {
                 ScenarioEvent.walkIn(46, "h1"),
                 ScenarioEvent.walkIn(47, "h1"));
         return new ScenarioConfig("divert", standardHospitals(), standardAmbulances(), events);
+    }
+
+    private static ScenarioConfig severityScenario() {
+        final List<ScenarioEvent> events = List.of(
+                ScenarioEvent.walkIn(2, "h1"),
+                ScenarioEvent.walkIn(3, "h1"),
+                ScenarioEvent.activatePatient(5, "patient1", "fracture",
+                        SeverityCode.GREEN, SeverityCode.GREEN, 7, 14),
+                ScenarioEvent.activatePatient(20, "patient2", "abdominal_pain",
+                        SeverityCode.RED, SeverityCode.RED, 3, 14));
+        return new ScenarioConfig("severity", standardHospitals(), standardAmbulances(), events);
     }
 
     private static ScenarioConfig preemptionScenario() {
