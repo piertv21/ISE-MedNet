@@ -1,11 +1,5 @@
 package mednet.env;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.logging.Logger;
-
-import jason.asSyntax.NumberTerm;
-import jason.asSyntax.Structure;
 import mednet.env.probe.ProbeRegistry;
 import mednet.model.clock.SimulationClock;
 import mednet.model.hospital.HospitalModel;
@@ -17,6 +11,12 @@ import mednet.model.territorial.HospitalSite;
 import mednet.model.territorial.TerritorialModel;
 import mednet.prolog.MedicalKb;
 import mednet.rbac.AgentNames;
+import jason.asSyntax.NumberTerm;
+import jason.asSyntax.Structure;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.logging.Logger;
 
 final class ActionExecutor {
 
@@ -153,7 +153,6 @@ final class ActionExecutor {
                 return false;
             }
             hospital.recordTriageResult(patient, record.get().trueCode());
-            record.get().setFinalCode(record.get().trueCode());
             ProbeRegistry.current().onEvent("secondary_triage", hospital.id(), patient,
                     record.get().trueCode().atom());
             return true;
@@ -230,7 +229,6 @@ final class ActionExecutor {
             if (code.isEmpty()) {
                 return false;
             }
-            
             final Optional<String> required = MedicalKb.treatmentEquipment(code.get().atom());
             if (required.isPresent()) {
                 final boolean ownsIt = hospital.equipment(required.get())

@@ -7,7 +7,6 @@ import mednet.model.hospital.HospitalModel;
 import mednet.model.hospital.TreatmentJob;
 import mednet.model.hospital.TriageEntry;
 import mednet.model.clock.SimulationClock;
-import mednet.model.patient.PatientRecord;
 import mednet.model.patient.PatientRegistry;
 import mednet.model.territorial.AmbulanceState;
 import mednet.model.territorial.HospitalSite;
@@ -145,9 +144,9 @@ final class PerceptRouter {
                 }
             }
             for (final ExamJob job : hospital.examJobsOf(name)) {
-                out.add(job.isDone()
-                        ? lit("exam_done(%s, %s)", job.patient(), job.exam())
-                        : lit("exam_in_progress(%s, %s)", job.patient(), job.exam()));
+                if (job.isDone()) {
+                    out.add(lit("exam_done(%s, %s)", job.patient(), job.exam()));
+                }
             }
             for (final TreatmentJob job : hospital.treatmentJobsOf(name)) {
                 if (job.isDone()) {
@@ -163,7 +162,6 @@ final class PerceptRouter {
             out.add(lit("tick(%d)", clock.currentTick()));
             for (final Equipment equipment : hospital.equipmentUnits()) {
                 final EquipmentLockState state = equipment.state();
-                out.add(lit("equipment(%s)", state.equipment()));
                 out.add(state.isFree()
                         ? lit("equipment_state(%s, free)", state.equipment())
                         : lit("equipment_state(%s, locked(%s))", state.equipment(), state.owner()));

@@ -9,6 +9,7 @@ import mednet.model.scenario.ScenarioConfig;
 import mednet.model.scenario.ScenarioGenerator;
 import mednet.model.territorial.TerritorialModel;
 import mednet.rbac.RbacPolicy;
+import mednet.view.DoctorRoster;
 import mednet.view.MedNetGui;
 import jason.asSyntax.Literal;
 import jason.asSyntax.Structure;
@@ -86,7 +87,6 @@ public class MedNetEnv extends Environment {
         hospitals.values().forEach(h -> clock.register(h::onTick));
         clock.register(generator::onTick);
         clock.register(tick -> informAgsEnvironmentChanged());
-        
         completion = new CompletionWatcher(generator, patients, hospitals, clock,
                 this::onSimulationFinished);
         clock.register(completion);
@@ -129,7 +129,8 @@ public class MedNetEnv extends Environment {
                 return;
             }
             try {
-                final MedNetGui view = new MedNetGui(territorial, hospitals, patients, clock);
+                final MedNetGui view = new MedNetGui(territorial, hospitals, patients, clock,
+                        new DoctorRoster(this::getEnvironmentInfraTier));
                 view.open();
                 gui = view;
             } catch (final RuntimeException | Error e) {
@@ -172,10 +173,6 @@ public class MedNetEnv extends Environment {
 
     public boolean isSimulationFinished() {
         return completion != null && completion.isFinished();
-    }
-
-    public TerritorialModel territorial() {
-        return territorial;
     }
 
     public HospitalModel hospital(final String id) {
