@@ -149,6 +149,17 @@ class StripsPlannerTest {
     }
 
     @Test
+    void aStagedPlanContainsEveryStepOfTheLinearPlan() {
+        for (final String pathology : MedicalKb.pathologies()) {
+            final String code = MedicalKb.defaultCode(pathology).orElseThrow();
+            assertThat(PrologKb.firstInt(
+                    "care_stages(" + pathology + ", " + code + ", [], S), plan_length(S, N)", "N"))
+                    .as("staged plan length of %s", pathology)
+                    .contains(plan(pathology, code, "[]").size());
+        }
+    }
+
+    @Test
     void anUnknownPathologyHasNoPlan() {
         assertThat(PrologKb.first("care_plan(hangnail, green, [], Plan)", "Plan")).isEmpty();
     }
