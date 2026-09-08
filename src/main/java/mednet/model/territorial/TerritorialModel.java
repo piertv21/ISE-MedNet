@@ -1,10 +1,11 @@
 package mednet.model.territorial;
 
-import mednet.model.scenario.ScenarioConfig;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import mednet.model.scenario.ScenarioConfig;
 
 public final class TerritorialModel {
 
@@ -49,11 +50,4 @@ public final class TerritorialModel {
         return sites.stream().filter(s -> s.hospitalAgent().equals(hospitalAgent)).findFirst();
     }
 
-    public synchronized int eta(final String ambulanceName, final int x, final int y) {
-        final AmbulanceState a = ambulances.get(ambulanceName);
-        if (a == null) {
-            return Integer.MAX_VALUE;
-        }
-        return Math.abs(a.x() - x) + Math.abs(a.y() - y);
-    }
 }

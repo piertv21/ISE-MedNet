@@ -33,8 +33,8 @@ public class care_stages extends DefaultInternalAction {
         final String code = atomOf(args[2]);
         final String done = prologListOf(args[3]);
 
-        final String goal = "care_plan(" + pathology + ", " + code + ", " + done + ", Plan), "
-                + "plan_stages(Plan, Stages), length(Plan, Steps), Result = result(Stages, Steps)";
+        final String goal = "care_stages(" + pathology + ", " + code + ", " + done + ", Stages), "
+                + "plan_length(Stages, Steps), Result = result(Stages, Steps)";
         final alice.tuprolog.Term result = PrologKb.first(goal, "Result").orElse(null);
         if (!(result instanceof alice.tuprolog.Struct plan) || plan.getArity() != 2) {
             return false;
