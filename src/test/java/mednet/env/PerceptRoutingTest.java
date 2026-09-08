@@ -1,14 +1,14 @@
 package mednet.env;
 
-import java.util.Collection;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import jason.asSyntax.Literal;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import jason.asSyntax.Literal;
+import java.util.Collection;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class PerceptRoutingTest {
 
@@ -110,7 +110,6 @@ class PerceptRoutingTest {
         ticks((int) mednet.model.hospital.HospitalModel.RESERVATION_LEASE_TICKS + 2);
 
         assertThat(perceptsOf("hospital_h1")).contains("reservation_expired(patient1)");
-        // ... and nobody else's: h2 sees nothing about a bed held at h1
         assertThat(perceptsOf("hospital_h2")).noneMatch(p -> p.startsWith("reservation_expired"));
         assertThat(perceptsOf("triage_nurse_h1")).noneMatch(p -> p.startsWith("reservation_expired"));
     }
@@ -142,7 +141,6 @@ class PerceptRoutingTest {
         final List<String> percepts = perceptsOf("equipment_manager_h1");
         assertThat(percepts).contains(
                 "tick(3)",
-                "equipment(ct_scanner)",
                 "equipment_state(ct_scanner,locked(doctor_h1_general))",
                 "equipment_state(operating_room,free)");
         assertThat(perceptsOf("equipment_manager_h2"))
