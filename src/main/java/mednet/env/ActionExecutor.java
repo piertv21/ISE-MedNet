@@ -16,6 +16,7 @@ import jason.asSyntax.Structure;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 final class ActionExecutor {
@@ -274,16 +275,11 @@ final class ActionExecutor {
         }).orElse(false));
     }
 
-    private boolean withHospital(final String agent, final HospitalAction operation) {
+    private boolean withHospital(final String agent, final Predicate<HospitalModel> operation) {
         return AgentNames.hospitalIdOf(agent)
                 .map(hospitals::get)
-                .map(operation::apply)
+                .map(operation::test)
                 .orElse(false);
-    }
-
-    @FunctionalInterface
-    private interface HospitalAction {
-        boolean apply(HospitalModel hospital);
     }
 
     private static int intArg(final Structure action, final int index) {

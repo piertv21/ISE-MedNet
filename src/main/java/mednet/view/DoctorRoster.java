@@ -53,7 +53,7 @@ public final class DoctorRoster {
                 return List.of();
             }
             final RuntimeServices services = tier.getRuntimeServices();
-            return services == null ? List.of() : services.getAgentsNames();
+            return services == null ? List.of() : services.getAgentsName();
         } catch (final RemoteException | RuntimeException e) {
             LOGGER.log(Level.FINE, "agent roster unavailable; the view shows no doctors", e);
             return List.of();

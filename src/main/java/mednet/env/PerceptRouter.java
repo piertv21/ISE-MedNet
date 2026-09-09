@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 final class PerceptRouter {
 
@@ -177,18 +178,13 @@ final class PerceptRouter {
         }
     }
 
-    private void withHospital(final String agentName, final HospitalConsumer consumer) {
+    private void withHospital(final String agentName, final BiConsumer<String, HospitalModel> consumer) {
         AgentNames.hospitalIdOf(agentName).ifPresent(id -> {
             final HospitalModel hospital = hospitals.get(id);
             if (hospital != null) {
                 consumer.accept(id, hospital);
             }
         });
-    }
-
-    @FunctionalInterface
-    private interface HospitalConsumer {
-        void accept(String hospitalId, HospitalModel hospital);
     }
 
     private static Literal lit(final String format, final Object... args) {
