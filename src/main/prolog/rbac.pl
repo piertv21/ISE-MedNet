@@ -8,25 +8,20 @@ role_name(doctor).
 
 role_of(Agent, Role) :- role_name(Role), name_matches(Agent, Role), !.
 
+name_matches(Agent, Agent).
+
 name_matches(Agent, Role) :-
-    atom_chars(Agent, AgentChars),
-    atom_chars(Role, RoleChars),
-    prefix_of(RoleChars, AgentChars).
+    atom_concat(Role, '_', Prefix),
+    atom_concat(Prefix, _, Agent).
 
 name_matches(Agent, patient) :-
-    atom_chars(Agent, [p, a, t, i, e, n, t | Digits]),
-    Digits \== [],
+    atom_concat(patient, Suffix, Agent),
+    Suffix \== '',
+    atom_chars(Suffix, Digits),
     all_digits(Digits).
 
-prefix_of([], []).
-prefix_of([], ['_' | _]).
-prefix_of([C | Role], [C | Agent]) :- prefix_of(Role, Agent).
-
 all_digits([]).
-all_digits([D | Ds]) :- digit(D), all_digits(Ds).
-
-digit('0'). digit('1'). digit('2'). digit('3'). digit('4').
-digit('5'). digit('6'). digit('7'). digit('8'). digit('9').
+all_digits([D | Ds]) :- char_code(D, C), C >= 48, C =< 57, all_digits(Ds).
 
 permitted(ambulance, move_to).
 permitted(ambulance, preliminary_triage).
