@@ -34,7 +34,6 @@ dependencies {
 }
 
 fun Test.headlessMasConfig() {
-    useJUnitPlatform()
     systemProperty("java.awt.headless", "true")
     systemProperty(
         "java.util.logging.config.file",
@@ -52,7 +51,7 @@ tasks.test {
     useJUnitPlatform { excludeTags("mas") }
 }
 
-val masTest by tasks.registering(Test::class) {
+val masTest = tasks.register<Test>("masTest") {
     description = "Runs MAS integration tests (mocked CNP negotiations and end-to-end simulations)."
     group = "verification"
     headlessMasConfig()
@@ -65,11 +64,6 @@ val masTest by tasks.registering(Test::class) {
 }
 
 tasks.check { dependsOn(masTest) }
-
-tasks.register("printTestClasspath") {
-    val classpath = sourceSets.test.get().runtimeClasspath
-    doLast { println(classpath.asPath) }
-}
 
 file(projectDir).listFiles()
     ?.filter { it.extension == "mas2j" }

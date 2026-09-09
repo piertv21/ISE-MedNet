@@ -1,8 +1,8 @@
 [versions]
-jason = "3.2.1"
+jason = "3.3.0"
 tuprolog = "4.1.1"
-junit = "5.11.4"
-assertj = "3.26.3"
+junit = "6.1.3"
+assertj = "3.27.7"
 
 [libraries]
 jason-interpreter = { module = "io.github.jason-lang:jason-interpreter", version.ref = "jason" }
