@@ -34,19 +34,19 @@ public final class ScenarioGenerator {
     }
 
     private void fire(final ScenarioEvent event) {
-        switch (event.kind()) {
-            case ACTIVATE_PATIENT -> {
-                final PatientRecord record = new PatientRecord(event.patientName(), event.pathology(),
-                        event.guessCode(), event.trueCode(), event.x(), event.y());
+        switch (event) {
+            case ScenarioEvent.ActivatePatient call -> {
+                final PatientRecord record = new PatientRecord(call.patientName(), call.pathology(),
+                        call.guessCode(), call.trueCode(), call.x(), call.y());
                 record.activate();
                 patients.register(record);
-                ProbeRegistry.current().onEvent("patient_activated", event.patientName(), event.pathology());
+                ProbeRegistry.current().onEvent("patient_activated", call.patientName(), call.pathology());
             }
-            case WALK_IN -> {
-                final HospitalModel hospital = hospitals.get(event.hospitalId());
+            case ScenarioEvent.WalkIn walkIn -> {
+                final HospitalModel hospital = hospitals.get(walkIn.hospitalId());
                 if (hospital != null) {
-                    final Optional<String> stolen = hospital.walkIn(event.tick());
-                    ProbeRegistry.current().onEvent("walk_in", event.hospitalId(),
+                    final Optional<String> stolen = hospital.walkIn(walkIn.tick());
+                    ProbeRegistry.current().onEvent("walk_in", walkIn.hospitalId(),
                             stolen.orElse("no_reservation_stolen"));
                 }
             }

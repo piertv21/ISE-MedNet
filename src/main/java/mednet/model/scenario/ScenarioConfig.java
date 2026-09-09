@@ -97,54 +97,55 @@ public final class ScenarioConfig {
                     : trueCode;
             final int x = 2 + random.nextInt(26);
             final int y = 2 + random.nextInt(26);
-            events.add(ScenarioEvent.activatePatient(tick, "patient" + i, pathology, guess, trueCode, x, y));
+            events.add(new ScenarioEvent.ActivatePatient(tick, "patient" + i, pathology, guess,
+                    trueCode, x, y));
             tick += 10 + random.nextInt(25);
         }
-        events.add(ScenarioEvent.walkIn(40, "h1"));
-        events.add(ScenarioEvent.walkIn(42, "h1"));
-        events.add(ScenarioEvent.walkIn(44, "h1"));
+        events.add(new ScenarioEvent.WalkIn(40, "h1"));
+        events.add(new ScenarioEvent.WalkIn(42, "h1"));
+        events.add(new ScenarioEvent.WalkIn(44, "h1"));
         return new ScenarioConfig("default", standardHospitals(), standardAmbulances(), events);
     }
 
     private static ScenarioConfig e2eScenario() {
         final List<ScenarioEvent> events = List.of(
-                ScenarioEvent.activatePatient(5, "patient1", "stroke",
+                new ScenarioEvent.ActivatePatient(5, "patient1", "stroke",
                         SeverityCode.RED, SeverityCode.RED, 20, 20),
-                ScenarioEvent.activatePatient(12, "patient2", "fracture",
+                new ScenarioEvent.ActivatePatient(12, "patient2", "fracture",
                         SeverityCode.GREEN, SeverityCode.GREEN, 8, 10),
-                ScenarioEvent.activatePatient(20, "patient3", "abdominal_pain",
+                new ScenarioEvent.ActivatePatient(20, "patient3", "abdominal_pain",
                         SeverityCode.GREEN, SeverityCode.GREEN, 10, 22),
-                ScenarioEvent.activatePatient(28, "patient4", "major_trauma",
+                new ScenarioEvent.ActivatePatient(28, "patient4", "major_trauma",
                         SeverityCode.YELLOW, SeverityCode.YELLOW, 7, 25));
         return new ScenarioConfig("e2e", standardHospitals(), standardAmbulances(), events);
     }
 
     private static ScenarioConfig divertScenario() {
         final List<ScenarioEvent> events = List.of(
-                ScenarioEvent.activatePatient(5, "patient1", "cardiac_arrest",
+                new ScenarioEvent.ActivatePatient(5, "patient1", "cardiac_arrest",
                         SeverityCode.RED, SeverityCode.RED, 20, 20),
-                ScenarioEvent.walkIn(45, "h1"),
-                ScenarioEvent.walkIn(46, "h1"),
-                ScenarioEvent.walkIn(47, "h1"));
+                new ScenarioEvent.WalkIn(45, "h1"),
+                new ScenarioEvent.WalkIn(46, "h1"),
+                new ScenarioEvent.WalkIn(47, "h1"));
         return new ScenarioConfig("divert", standardHospitals(), standardAmbulances(), events);
     }
 
     private static ScenarioConfig severityScenario() {
         final List<ScenarioEvent> events = List.of(
-                ScenarioEvent.walkIn(2, "h1"),
-                ScenarioEvent.walkIn(3, "h1"),
-                ScenarioEvent.activatePatient(5, "patient1", "fracture",
+                new ScenarioEvent.WalkIn(2, "h1"),
+                new ScenarioEvent.WalkIn(3, "h1"),
+                new ScenarioEvent.ActivatePatient(5, "patient1", "fracture",
                         SeverityCode.GREEN, SeverityCode.GREEN, 7, 14),
-                ScenarioEvent.activatePatient(20, "patient2", "abdominal_pain",
+                new ScenarioEvent.ActivatePatient(20, "patient2", "abdominal_pain",
                         SeverityCode.RED, SeverityCode.RED, 3, 14));
         return new ScenarioConfig("severity", standardHospitals(), standardAmbulances(), events);
     }
 
     private static ScenarioConfig preemptionScenario() {
         final List<ScenarioEvent> events = List.of(
-                ScenarioEvent.activatePatient(5, "patient1", "fracture",
+                new ScenarioEvent.ActivatePatient(5, "patient1", "fracture",
                         SeverityCode.GREEN, SeverityCode.YELLOW, 8, 8),
-                ScenarioEvent.activatePatient(20, "patient2", "cardiac_arrest",
+                new ScenarioEvent.ActivatePatient(20, "patient2", "cardiac_arrest",
                         SeverityCode.RED, SeverityCode.RED, 9, 9));
         return new ScenarioConfig("preemption", standardHospitals(), standardAmbulances(), events);
     }
