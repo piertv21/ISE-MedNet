@@ -6,8 +6,6 @@
    <- !load_medical_kb;
       .concat("doctor_", H, GenericService);
       .df_register(GenericService);
-      .concat("doctor_", H, "_", Spec, SpecializedService);
-      .df_register(SpecializedService);
       +ready;
       .print("on duty at ", H, " (", Spec, ")").
 
