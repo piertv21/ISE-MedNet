@@ -29,7 +29,7 @@ class TriageQueueTest {
         queue.remove("victim");
         queue.enqueue("later1", SeverityCode.YELLOW, 5);
         queue.enqueue("later2", SeverityCode.YELLOW, 6);
-        queue.requeueFront("victim", SeverityCode.YELLOW, 10);
+        queue.enqueue("victim", SeverityCode.YELLOW, 10);
         assertThat(queue.snapshot().stream().map(TriageEntry::patient))
                 .containsExactly("victim", "later1", "later2");
     }
@@ -40,7 +40,7 @@ class TriageQueueTest {
         queue.enqueue("victim", SeverityCode.YELLOW, 1);
         queue.remove("victim");
         queue.enqueue("critical", SeverityCode.RED, 5);
-        queue.requeueFront("victim", SeverityCode.YELLOW, 10);
+        queue.enqueue("victim", SeverityCode.YELLOW, 10);
         assertThat(queue.snapshot().get(0).patient()).isEqualTo("critical");
     }
 

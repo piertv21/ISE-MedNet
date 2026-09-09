@@ -23,10 +23,6 @@ public final class TriageQueue {
                 .thenComparingLong(TriageEntry::arrivalSeq));
     }
 
-    public synchronized void requeueFront(final String patient, final SeverityCode code, final long nowTick) {
-        enqueue(patient, code, nowTick);
-    }
-
     public synchronized Optional<TriageEntry> remove(final String patient) {
         final Optional<TriageEntry> found =
                 entries.stream().filter(e -> e.patient().equals(patient)).findFirst();
