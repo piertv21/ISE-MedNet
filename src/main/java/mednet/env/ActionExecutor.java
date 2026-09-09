@@ -179,7 +179,7 @@ final class ActionExecutor {
             if (!hospital.isPresent(patient)) {
                 return false;
             }
-            hospital.triage().requeueFront(patient, SeverityCode.fromAtom(code), clock.currentTick());
+            hospital.triage().enqueue(patient, SeverityCode.fromAtom(code), clock.currentTick());
             ProbeRegistry.current().onEvent("patient_requeued", hospital.id(), patient, code);
             return true;
         });

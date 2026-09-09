@@ -48,7 +48,6 @@ public class MedNetEnv extends Environment {
         long periodMs = 250;
         boolean guiRequested = false;
         boolean manualClock = false;
-        boolean probeLog = false;
         for (final String arg : args == null ? new String[0] : args) {
             if (arg.startsWith("seed=")) {
                 seed = Long.parseLong(arg.substring("seed=".length()));
@@ -60,17 +59,7 @@ public class MedNetEnv extends Environment {
                 guiRequested = true;
             } else if (arg.equals("manualClock")) {
                 manualClock = true;
-            } else if (arg.equals("probeLog")) {
-                probeLog = true;
             }
-        }
-        if (probeLog) {
-            ProbeRegistry.install(new mednet.env.probe.EnvProbe() {
-                @Override
-                public void onEvent(final String type, final Object... data) {
-                    System.err.println("[probe] " + type + " " + java.util.Arrays.toString(data));
-                }
-            });
         }
 
         config = ScenarioConfig.byName(scenarioName, seed);

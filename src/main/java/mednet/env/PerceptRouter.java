@@ -83,7 +83,6 @@ final class PerceptRouter {
 
     private void ambulancePercepts(final String name, final List<Literal> out) {
         territorial.ambulance(name).ifPresent(ambulance -> {
-            out.add(lit("my_pos(%d, %d)", ambulance.x(), ambulance.y()));
             if (ambulance.hasTarget() && ambulance.isArrived()) {
                 out.add(lit("at_target(%d, %d)", ambulance.targetX(), ambulance.targetY()));
             }
