@@ -7,6 +7,8 @@
 ![Jason](https://img.shields.io/badge/Jason-3.3.0-green)
 ![tuProlog](https://img.shields.io/badge/tuProlog-4.1.1-lightgrey)
 
+<img width="2264" height="1785" alt="image" src="https://github.com/user-attachments/assets/09d14aca-e80d-497a-b942-496bf104fe89" />
+
 ## 📋 Overview
 
 MedNet simulates an emergency network in which unpredictable calls trigger ambulance
@@ -19,8 +21,6 @@ simulation is running.
 The environment evolves through discrete simulation ticks across two coupled layers — a
 territorial map holding ambulances and hospital sites, and one internal view per hospital
 holding the triage queue, the doctors and the equipment.
-
-Coursework project for *Ingegneria dei Sistemi Software* (`it.unibo.ise`).
 
 ## ✨ Main Features
 
