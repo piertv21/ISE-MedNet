@@ -1,11 +1,11 @@
 # 🏥 MedNet
 
-> A two-tier multi-agent system that couples territorial ambulance dispatch with in-hospital emergency department management.
-
 ![Java](https://img.shields.io/badge/Java-21-orange)
 ![Gradle](https://img.shields.io/badge/Gradle-9.7-blue)
 ![Jason](https://img.shields.io/badge/Jason-3.3.0-green)
 ![tuProlog](https://img.shields.io/badge/tuProlog-4.1.1-lightgrey)
+
+A two-tier multi-agent system that couples territorial ambulance dispatch with in-hospital emergency department management.
 
 <img width="2264" height="1785" alt="image" src="https://github.com/user-attachments/assets/09d14aca-e80d-497a-b942-496bf104fe89" />
 
@@ -18,30 +18,30 @@ specialized doctor. Capacity is never known a priori: beds fill up, walk-in pati
 steal reservations, and equipment is contended, so agents must renegotiate while the
 simulation is running.
 
-The environment evolves through discrete simulation ticks across two coupled layers — a
+The environment evolves through discrete simulation ticks across two coupled layers: a
 territorial map holding ambulances and hospital sites, and one internal view per hospital
 holding the triage queue, the doctors and the equipment.
 
 ## ✨ Main Features
 
-- **Two-stage Contract Net Protocol** — a macro round between the control center and the
+- **Two-stage Contract Net Protocol**: a macro round between the control center and the
   hospitals (bidding on distance, occupancy and specialization match, weighted by
   severity code), and a micro round between a hospital's triage nurse and its doctors.
-- **Priority triage with preemption** — a red-code patient can interrupt an ongoing
+- **Priority triage with preemption**: a red-code patient can interrupt an ongoing
   lower-priority treatment; the victim is requeued at the head of its own priority class
   and later **replanned**, not restarted from scratch.
-- **Mid-transport renegotiation** — if the assigned hospital loses capacity while the
+- **Mid-transport renegotiation**: if the assigned hospital loses capacity while the
   ambulance is en route, the network round reopens excluding it and the ambulance is
   rerouted.
-- **STRIPS planning in Prolog** — each care plan is derived, not hardcoded: exams that
+- **STRIPS planning in Prolog**: each care plan is derived, not hardcoded: exams that
   need different machines are grouped into parallel stages, and replanning skips the
   exams already performed.
-- **Mutual exclusion on critical equipment** — a Java monitor guards each machine, with
+- **Mutual exclusion on critical equipment**: a Java monitor guards each machine, with
   an equipment-manager agent arbitrating a priority queue on top, plus grant revocation
   and lease expiry to prevent leaks.
-- **RBAC enforced in Prolog** — every environment action is checked against a role
+- **RBAC enforced in Prolog**: every environment action is checked against a role
   policy (7 roles × 17 actions) before it executes.
-- **Dual-view GUI** — a 30×30 territorial map alongside one live panel per hospital.
+- **Dual-view GUI**: a 30×30 territorial map alongside one live panel per hospital.
 
 ## 🏗️ Architecture
 
@@ -60,15 +60,11 @@ world, and Prolog theories holding the domain knowledge.
 
 The default configuration (`mednet_local.mas2j`) runs **24 agents** over three hospitals:
 
-| Hospital | Position | Beds | Specializations |
-|---|---|---|---|
-| `h1` | (5, 5) | 3 | cardiology, general |
-| `h2` | (24, 24) | 2 | neurology, general |
-| `h3` | (5, 24) | 2 | trauma_surgery, general |
-
-Negotiation messages follow FIPA performatives — `cfp`, `propose`, `refuse`,
-`accept_proposal`, `reject_proposal` — implemented once in `include/cnp_initiator.asl`
-and `include/cnp_participant.asl` and reused by both stages.
+| Hospital | Beds | Specializations |
+|---|---|---|
+| `h1` | 3 | cardiology, general |
+| `h2` | 2 | neurology, general |
+| `h3` | 2 | trauma_surgery, general |
 
 ## 🧠 Knowledge Base
 
@@ -76,11 +72,11 @@ Clinical and organizational constraints live in `src/main/prolog/mednet_kb.pl` a
 the agents as AgentSpeak beliefs through the `mednet.prolog.consult_kb` internal action,
 so plan context conditions query them directly rather than reading external data.
 
-- **Severity codes** — `red`, `yellow`, `green`, `white`; preemptability is *derived*
+- **Severity codes**: `red`, `yellow`, `green`, `white`; preemptability is *derived*
   from urgency, not stated.
-- **Pathologies** — `cardiac_arrest` → cardiology, `stroke` → neurology, `major_trauma`
+- **Pathologies**: `cardiac_arrest` → cardiology, `stroke` → neurology, `major_trauma`
   → trauma_surgery, `fracture` and `abdominal_pain` → general.
-- **Equipment** — `ct_scanner`, `xray_room`, `ecg_station`, `lab`, `operating_room`
+- **Equipment**: `ct_scanner`, `xray_room`, `ecg_station`, `lab`, `operating_room`
   (the latter required for red-code treatments only).
 
 Three further theories complete the picture: `rbac.pl` (roles and permissions),
@@ -92,7 +88,7 @@ the segmentation into parallel stages).
 **Prerequisite:** JDK 21. The Gradle wrapper is included, so no local Gradle is needed.
 
 ```bash
-# Run the simulation with the dual-view GUI
+# Run the simulation
 ./gradlew runMednet_localMas
 
 # Run the whole verification suite
@@ -110,7 +106,6 @@ The environment accepts arguments in `mednet_local.mas2j`:
 | `scenario=<name>` | `default`, `e2e`, `preemption`, `divert`, `severity`, `empty` |
 | `period=<ms>` | Milliseconds per simulation tick (default 250) |
 | `gui` | Opens the dual view |
-| `manualClock` | Does not start the clock; ticks are driven programmatically |
 
 ## 🧪 Testing
 
@@ -126,16 +121,3 @@ STRIPS planner and the RBAC matrix. The MAS layer boots real Jason projects: fiv
 mocked agents to isolate single negotiation behaviours (network CNP, local CNP,
 preemption, renegotiation, double-award) and four end-to-end runs of the full simulation
 on deterministic scenarios.
-
-## 📁 Project Structure
-
-```
-src/main/asl/          BDI agents (+ include/ for the reusable CNP roles)
-src/main/java/mednet/
-  env/                 Jason environment: percept routing, action execution, RBAC gate
-  model/               Simulated world: territory, hospitals, patients, clock, scenarios
-  plan/  prolog/       Internal actions bridging AgentSpeak to the Prolog theories
-  rbac/  view/         Role parsing and the Swing dual view
-src/main/prolog/       mednet_kb, rbac, strips, care_domain
-src/test/              Unit tests, mocked agents, and MAS projects under mas2j/
-```
