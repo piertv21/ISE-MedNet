@@ -10,6 +10,9 @@ import mednet.env.probe.ProbeRegistry;
 import mednet.model.patient.SeverityCode;
 import mednet.testsupport.TestProbe;
 
+// When a run counts as over: the timeline exhausted, every patient discharged and every
+// bed free again. The last condition keeps a leaked reservation from being hidden by the
+// run ending around it.
 class SimulationCompletionTest {
 
     private MedNetEnv env;
@@ -84,6 +87,8 @@ class SimulationCompletionTest {
         assertThat(env.clock().isFinished()).isTrue();
         assertThat(probe.count(e -> e.is("simulation_finished", String.valueOf(lastTick)))).isEqualTo(1);
 
+        // Neither a manual tick nor a restart of the scheduler may move the clock or fire
+        // the completion a second time.
         ticks(5);
         env.clock().start(10);
         assertThat(env.clock().currentTick()).isEqualTo(lastTick);

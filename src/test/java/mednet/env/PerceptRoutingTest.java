@@ -10,6 +10,9 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+// What each role may see, asserted percept by percept, and what it may not: the control
+// center never sees bed counts, staff of one hospital never sees another's patients, and
+// an ambulance sees triage data only after its own assessment.
 class PerceptRoutingTest {
 
     private MedNetEnv env;
@@ -126,6 +129,8 @@ class PerceptRoutingTest {
         assertThat(perceptsOf("doctor_h1_general")).contains(
                 "exam_done(patient1,xray)", "exam_completed(patient1,xray)");
 
+        // Preemption drops the job but not the record of the work: exam_done disappears
+        // and exam_completed survives, which is what makes the replan skip the exam.
         env.hospital("h1").abortJobsFor("patient1");
         assertThat(perceptsOf("doctor_h1_general"))
                 .contains("exam_completed(patient1,xray)")

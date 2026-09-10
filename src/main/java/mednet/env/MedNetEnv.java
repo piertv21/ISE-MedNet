@@ -1,5 +1,18 @@
 package mednet.env;
 
+import java.awt.GraphicsEnvironment;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.swing.SwingUtilities;
+
+import jason.asSyntax.Literal;
+import jason.asSyntax.Structure;
+import jason.environment.Environment;
 import mednet.env.probe.ProbeRegistry;
 import mednet.model.clock.SimulationClock;
 import mednet.model.hospital.HospitalModel;
@@ -11,19 +24,10 @@ import mednet.model.territorial.TerritorialModel;
 import mednet.rbac.RbacPolicy;
 import mednet.view.DoctorRoster;
 import mednet.view.MedNetGui;
-import jason.asSyntax.Literal;
-import jason.asSyntax.Structure;
-import jason.environment.Environment;
 
-import javax.swing.SwingUtilities;
-import java.awt.GraphicsEnvironment;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+// Jason environment of MedNet: percept/action loop between the agents and the simulated
+// world. Holds the territorial map and one model per hospital, advanced by SimulationClock.
+// mas2j arguments: seed=<long>, scenario=<name>, period=<ms>, gui, manualClock.
 public class MedNetEnv extends Environment {
 
     private static final Logger LOGGER = Logger.getLogger(MedNetEnv.class.getName());
@@ -76,6 +80,9 @@ public class MedNetEnv extends Environment {
         hospitals.values().forEach(h -> clock.register(h::onTick));
         clock.register(generator::onTick);
         clock.register(tick -> informAgsEnvironmentChanged());
+
+        // Registered last: the watcher stops the clock, so every other listener must
+        // still receive the tick that completes the run.
         completion = new CompletionWatcher(generator, patients, hospitals, clock,
                 this::onSimulationFinished);
         clock.register(completion);

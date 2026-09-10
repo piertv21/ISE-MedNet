@@ -1,28 +1,31 @@
 package mednet.env;
 
-import mednet.model.hospital.EquipmentLockState;
-import mednet.model.hospital.Equipment;
-import mednet.model.hospital.ExamJob;
-import mednet.model.hospital.HospitalModel;
-import mednet.model.hospital.TreatmentJob;
-import mednet.model.hospital.TriageEntry;
-import mednet.model.clock.SimulationClock;
-import mednet.model.patient.PatientRegistry;
-import mednet.model.territorial.AmbulanceState;
-import mednet.model.territorial.HospitalSite;
-import mednet.model.territorial.TerritorialModel;
-import mednet.rbac.AgentNames;
-import mednet.rbac.Role;
-import jason.asSyntax.ASSyntax;
-import jason.asSyntax.Literal;
-import jason.asSyntax.parser.ParseException;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 
+import jason.asSyntax.ASSyntax;
+import jason.asSyntax.Literal;
+import jason.asSyntax.parser.ParseException;
+import mednet.model.clock.SimulationClock;
+import mednet.model.hospital.Equipment;
+import mednet.model.hospital.EquipmentLockState;
+import mednet.model.hospital.ExamJob;
+import mednet.model.hospital.HospitalModel;
+import mednet.model.hospital.TreatmentJob;
+import mednet.model.hospital.TriageEntry;
+import mednet.model.patient.PatientRegistry;
+import mednet.model.territorial.AmbulanceState;
+import mednet.model.territorial.HospitalSite;
+import mednet.model.territorial.TerritorialModel;
+import mednet.rbac.AgentNames;
+import mednet.rbac.Role;
+
+// Each agent perceives only the slice of the world its role and location allow. Doctors
+// of h1 never see h2, the control center never sees bed counts, and an ambulance sees
+// triage data only after its own on-site assessment.
 final class PerceptRouter {
 
     private final TerritorialModel territorial;

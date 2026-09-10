@@ -19,6 +19,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+// Executes the RBAC-authorized environment actions, validating every argument. A
+// malformed or inapplicable action returns false instead of corrupting the model.
 final class ActionExecutor {
 
     private static final Logger LOGGER = Logger.getLogger(ActionExecutor.class.getName());
@@ -175,6 +177,8 @@ final class ActionExecutor {
         return withHospital(agent, hospital -> hospital.triage().remove(patient).isPresent());
     }
 
+    // Re-queues a preempted patient. A plain enqueue puts them back at the head of their
+    // priority class, since TriageQueue keeps the arrival sequence from the first entry.
     private boolean requeueFront(final String agent, final String patient, final String code) {
         return withHospital(agent, hospital -> {
             if (!hospital.isPresent(patient)) {
@@ -210,6 +214,8 @@ final class ActionExecutor {
     private boolean runExam(final String agent, final String patient, final String exam,
             final String equipmentName) {
         return withHospital(agent, hospital -> {
+            // The equipment manager's grant is not enough: the exam starts only if this
+            // doctor holds the lock. Mutual exclusion over the machines is enforced here.
             final boolean ownsLock = hospital.equipment(equipmentName)
                     .map(eq -> agent.equals(eq.state().owner()))
                     .orElse(false);
@@ -230,6 +236,8 @@ final class ActionExecutor {
             if (code.isEmpty()) {
                 return false;
             }
+            // Protocol restriction from the knowledge base: red codes may only be treated
+            // while the doctor holds the operating room.
             final Optional<String> required = MedicalKb.treatmentEquipment(code.get().atom());
             if (required.isPresent()) {
                 final boolean ownsIt = hospital.equipment(required.get())
@@ -293,6 +301,8 @@ final class ActionExecutor {
         }
     }
 
+    // Action terms come from agent plans, so anything that is not a plain atom is
+    // rejected here rather than reaching the model as a bogus patient or equipment id.
     private static String atomArg(final Structure action, final int index) {
         if (action.getArity() <= index) {
             throw new IllegalArgumentException("argument " + index + " is missing");

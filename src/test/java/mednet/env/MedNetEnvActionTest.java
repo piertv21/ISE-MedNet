@@ -11,6 +11,9 @@ import mednet.env.probe.ProbeRegistry;
 import mednet.model.patient.SeverityCode;
 import mednet.testsupport.TestProbe;
 
+// The action side of the environment, driven directly with no MAS and no agents.
+// manualClock keeps the scheduler out, so every tick is explicit and the class is
+// deterministic.
 class MedNetEnvActionTest {
 
     private MedNetEnv env;
@@ -95,6 +98,7 @@ class MedNetEnvActionTest {
     void equipmentMutexIsEnforcedThroughActions() throws Exception {
         assertThat(act("doctor_h1_general", "lock_equipment(ct_scanner)")).isTrue();
         assertThat(act("doctor_h1_cardiology", "lock_equipment(ct_scanner)")).isFalse();
+        // re-entrant for the owner: a retry must not deadlock against its own lock
         assertThat(act("doctor_h1_general", "lock_equipment(ct_scanner)")).isTrue();
         assertThat(act("doctor_h1_cardiology", "unlock_equipment(ct_scanner)")).isFalse();
         assertThat(act("doctor_h1_general", "unlock_equipment(ct_scanner)")).isTrue();
