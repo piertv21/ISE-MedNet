@@ -1,3 +1,6 @@
+// Two scripted handovers: the yellow case first, the red one 4 s later, late enough for
+// the yellow to be under treatment when the red arrives.
+
 !start.
 +!start
    <- .wait(1000);

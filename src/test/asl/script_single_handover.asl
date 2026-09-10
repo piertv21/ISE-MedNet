@@ -1,3 +1,5 @@
+// One scripted arrival; the initial wait lets the agents register in the DF first.
+
 !start.
 +!start
    <- .wait(1000);

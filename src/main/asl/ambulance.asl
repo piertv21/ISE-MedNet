@@ -1,3 +1,6 @@
+// Ambulance agent: preliminary on-site triage and transport to the awarded hospital.
+// A new transport order for the same call replaces the current route.
+
 status(free).
 
 !setup.
@@ -17,6 +20,8 @@ status(free).
       .print("picked up ", Patient, ": ", Pathology, " (prelim code ", Code, ")");
       .send(control_center, tell, triage_report(CallId, Pathology, Code, pos(X, Y))).
 
+// Refusing a second mission must not reset the status: this vehicle is still busy with
+// the call it already accepted.
 -!pickup(CallId, _, _)
    :  status(busy(Other)) & Other \== CallId
    <- .print("cannot take ", CallId, ": still on ", Other);
@@ -33,6 +38,8 @@ status(free).
       +transporting(CallId, Hospital);
       !!do_transport(CallId, Hospital).
 
+// A different destination for the same call drops the running transport intention and
+// replaces the route, patient still on board.
 +transport_to(CallId, NewHospital)[source(control_center)]
    :  transporting(CallId, OldHospital) & OldHospital \== NewHospital
    <- .abolish(transport_to(CallId, NewHospital));
@@ -55,15 +62,21 @@ status(free).
       .send(Nurse, tell, handover(CallId, Patient, Pathology, Code));
       .abolish(transporting(CallId, _));
       -+status(free);
+      // The handover closes the network negotiation: the control center stops reopening
+      // it and undoes any award still in flight.
       .send(control_center, tell, delivered(CallId, Hospital));
       .send(control_center, tell, ambulance_free).
 
+// The hospital could not take the patient, its bed having gone to someone else during
+// the drive. The patient is still on board, so stay on mission and wait for a new
+// destination.
 -!do_transport(CallId, Hospital)
    :  carrying(_)
    <- .print("delivery of ", CallId, " to ", Hospital, " failed; awaiting a new destination");
       .abolish(transporting(CallId, _));
       .send(control_center, tell, transport_failed(CallId, Hospital)).
 
+// Nothing on board: the mission is over.
 -!do_transport(CallId, Hospital)
    <- .print("transport of ", CallId, " toward ", Hospital, " failed");
       .abolish(transporting(CallId, _));

@@ -1,3 +1,6 @@
+// Mock CNP participant with a fixed bid, so the winner of each round is deterministic
+// and the tests assert on the protocol rather than on the real bid formula.
+
 bid_of(hospital_h1, 130).
 bid_of(hospital_h2, 250).
 bid_of(hospital_h3, 400).

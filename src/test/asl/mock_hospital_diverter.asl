@@ -1,3 +1,6 @@
+// Wins every round it joins with a bid of 100, then gives the bed straight back, which
+// drives the renegotiation and double-trigger tests.
+
 !start.
 +!start <- .df_register("hospital").
 

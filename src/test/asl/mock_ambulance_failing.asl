@@ -1,3 +1,6 @@
+// Fails the first delivery only, then succeeds. With the diverter hospital this makes one
+// event, the lost bed, reach the control center twice.
+
 !start.
 +!start <- .df_register("ambulance").
 

@@ -1,3 +1,6 @@
+// Fixed bids: the specialized doctor is always the cheaper one, so the local CNP has a
+// deterministic winner.
+
 bid_of(doctor_h1_neurology, 0).
 bid_of(doctor_h1_general, 10).
 

@@ -1,3 +1,5 @@
+// Always refuses: the saturated hospital of the network CNP tests.
+
 !start.
 +!start <- .df_register("hospital").
 

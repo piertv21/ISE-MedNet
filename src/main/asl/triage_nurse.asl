@@ -1,3 +1,7 @@
+// Triage Nurse: secondary triage, priority queue and initiator of the in-hospital
+// ContractNet toward its own doctors. Serializes the local negotiations, one per
+// hospital at a time, and decides red-code preemption when no doctor is free.
+
 { include("include/kb_bootstrap.asl") }
 { include("include/cnp_initiator.asl") }
 
@@ -23,6 +27,8 @@ cnp_deadline(1500).
       +queued(Patient, Pathology, Code);
       !!process_queue.
 
+// Highest-priority waiting patient: min over code priority then arrival tick. The tick
+// comes from the waiting/3 percept, that is from the environment queue, not from beliefs.
 next_case(P, Path, C) :-
    .findall(cand(Prio, Since, P2, Path2, C2),
             (queued(P2, Path2, C2) & code_priority(C2, Prio) & waiting(P2, C2, Since)),
@@ -30,16 +36,19 @@ next_case(P, Path, C) :-
    & not .empty(Candidates)
    & .min(Candidates, cand(_, _, P, Path, C)).
 
+// assigning/1 serializes the local CNP: one negotiation at a time per hospital, so two
+// doctors are never awarded from two rounds started off the same queue state.
 @pq[atomic]
 +!process_queue
    :  not assigning(_) & next_case(Patient, Pathology, Code)
    <- +assigning(Patient);
       !!run_assignment(Patient, Pathology, Code).
-+!process_queue <- true.
++!process_queue <- true.   // empty queue, or a negotiation is already running
 
 +!run_assignment(Patient, Pathology, Code)
    :  my_hospital(H)
    <- .concat("doctor_", H, DoctorsService);
+      // every doctor of this hospital bids; the specialization preference is in the bid
       !cnp_start(t(Patient), treat(Patient, Pathology, Code), DoctorsService, DoctorsService).
 
 +!cnp_awarded(t(Patient), Doctor, treat(Patient, _, Code))
@@ -49,6 +58,8 @@ next_case(P, Path, C) :-
       -assigning(Patient);
       !!process_queue.
 
+// The least critical patient in treatment whose code the protocol allows to preempt.
+// protocol_preemptable/1 is derived by the knowledge base and red is never a victim.
 preemption_victim(D, P, C) :-
    .findall(victim(Prio, D2, P2, C2),
             (under_treatment(P2, D2, C2) & protocol_preemptable(C2) & code_priority(C2, Prio)),
@@ -56,6 +67,8 @@ preemption_victim(D, P, C) :-
    & not .empty(Victims)
    & .max(Victims, victim(_, D, P, C)).
 
+// No doctor free and the waiting patient is red, so preempt. This runs from the
+// no-winner callback, only after the ordinary negotiation has failed.
 +!cnp_no_winner(t(Patient), treat(Patient, Pathology, red))
    :  preemption_victim(Doctor, Victim, VictimCode)
    <- .print("[PREEMPT] red ", Patient, " preempts ", Victim, " (", VictimCode,
@@ -67,11 +80,14 @@ preemption_victim(D, P, C) :-
       -assigning(Patient);
       !!process_queue.
 
+// Non-red, or no preemptable victim: back off and retry later.
 +!cnp_no_winner(t(Patient), treat(_, _, _))
    <- -assigning(Patient);
       .wait(2000);
       !!process_queue.
 
+// A preempted patient comes back: requeue_front puts them at the head of their priority
+// class, so being preempted does not cost them their place in line.
 +requeue(Patient, Pathology, Code)[source(Doctor)]
    <- .abolish(requeue(Patient, Pathology, Code));
       -under_treatment(Patient, Doctor, _);

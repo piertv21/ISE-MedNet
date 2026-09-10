@@ -1,3 +1,6 @@
+// Control Center: receives emergency calls, dispatches ambulances and runs the network
+// ContractNet toward the hospitals, awarding on the cost each hospital computes itself.
+
 { include("include/kb_bootstrap.asl") }
 { include("include/cnp_initiator.asl") }
 
@@ -25,6 +28,8 @@ cnp_deadline(2000).
       .print("[CC] dispatching ", Amb, " for ", CallId);
       .send(Amb, achieve, pickup(CallId, Patient, Pos)).
 
+// Claiming an ambulance is atomic and separate from sending the mission: two calls
+// handled concurrently must never pick the same vehicle.
 @cc_claim_nearest[atomic]
 +!claim_ambulance(CallId, Amb)
    :  emergency(CallId, _, pos(X, Y), _)
@@ -37,6 +42,7 @@ cnp_deadline(2000).
       +busy_amb(Amb);
       +dispatched(CallId, Amb).
 
+// Fallback with no positional percepts (protocol-level tests): first free one in the DF.
 +!claim_ambulance(CallId, Amb)
    <- .df_search("ambulance", Ambulances);
       !claim_from(Ambulances, CallId, Amb).
@@ -49,6 +55,7 @@ cnp_deadline(2000).
 
 +!claim_from(_, _, _) <- .fail.
 
+// No ambulance available right now: retry until one frees up.
 -!dispatch_ambulance(CallId)
    <- .wait(1000);
       !dispatch_ambulance(CallId).
@@ -57,6 +64,9 @@ cnp_deadline(2000).
    <- .abolish(ambulance_free[source(A)]);
       -busy_amb(A).
 
+// The on-site triage report opens the network CNP. The required specialization is looked
+// up in the body, after the knowledge base is in place, rather than in the context: the
+// plan must not silently fail to apply just because the KB is not loaded yet.
 +triage_report(CallId, Pathology, Code, Pos)[source(Amb)]
    :  emergency(CallId, Patient, _, _)
    <- .abolish(triage_report(CallId, Pathology, Code, Pos));
@@ -68,11 +78,15 @@ cnp_deadline(2000).
       !cnp_start(CallId, admission(CallId, Patient, Pathology, Code, Pos),
                  SpecializedService, "hospital").
 
+// The patient was delivered while this round was still in flight: the award is void and
+// the winner must give the bed back.
 +!cnp_awarded(CallId, Hospital, admission(CallId, Patient, _, _, _))
    :  settled(CallId)
    <- .print("[CC] ", CallId, " already delivered; cancelling the admission at ", Hospital);
       .send(Hospital, tell, cancel_admission(CallId, Patient)).
 
+// Reroute: whoever was holding the bed for this call must release it before the
+// ambulance is sent somewhere else.
 +!cnp_awarded(CallId, Hospital, admission(CallId, Patient, _, _, _))
    :  dispatched(CallId, Amb) & admitted_to(CallId, Previous) & Previous \== Hospital
    <- .print("[CC] ", CallId, " moved from ", Previous, " to ", Hospital);
@@ -87,15 +101,16 @@ cnp_deadline(2000).
 
 +!cnp_no_winner(CallId, admission(CallId, _, _, _, _))
    :  settled(CallId)
-   <- true.
+   <- true.   // already in a hospital: nothing left to negotiate
 
 +!cnp_no_winner(CallId, admission(CallId, Patient, Pathology, Code, Pos))
    <- .print("[CNP-NET] no hospital can admit ", CallId, "; retrying");
-      .abolish(excluded(CallId, _));
+      .abolish(excluded(CallId, _));   // saturated hospitals get another chance
       .wait(1500);
       !cnp_start(CallId, admission(CallId, Patient, Pathology, Code, Pos),
                  "hospital", "hospital").
 
+// The handover closes this call: no divert, transport failure or retry may reopen it.
 +delivered(CallId, Hospital)[source(Amb)]
    <- .abolish(delivered(CallId, Hospital));
       +settled(CallId);
@@ -106,10 +121,16 @@ cnp_deadline(2000).
       .abolish(emergency_code(CallId, _));
       .abolish(dispatched(CallId, _)).
 
+// Nothing in the protocol waits for this acknowledgement, since the transport order has
+// already gone out, but the belief must be consumed or one literal per admission piles
+// up here for the whole run.
 +admission_confirmed(CnpId, CallId)[source(H)]
    <- .abolish(admission_confirmed(CnpId, CallId));
       .print("[CC] ", H, " is holding the bed for ", CallId).
 
+// Stale divert: the call was delivered in the meantime. A hospital asks for a divert
+// only when it has just lost the bed, so there is nothing to give back, only a
+// negotiation not to reopen.
 +divert_request(CallId)[source(_)]
    :  settled(CallId)
    <- .abolish(divert_request(CallId)).
@@ -122,11 +143,13 @@ cnp_deadline(2000).
       .print("[RENEG] ", H, " lost capacity for ", CallId, "; reopening network CNP");
       !renegotiate(CallId, Patient, Pathology, Code, Amb).
 
+// Re-bid from the ambulance's current position when it is known,
 +!renegotiate(CallId, Patient, Pathology, Code, Amb)
    :  ambulance_pos(Amb, Pos)
    <- !cnp_start(CallId, admission(CallId, Patient, Pathology, Code, Pos),
                  "hospital", "hospital").
 
+// or from the original call position otherwise.
 +!renegotiate(CallId, Patient, Pathology, Code, _)
    :  emergency(CallId, _, Pos, _)
    <- !cnp_start(CallId, admission(CallId, Patient, Pathology, Code, Pos),
@@ -149,6 +172,8 @@ cnp_deadline(2000).
    :  settled(CallId)
    <- .abolish(transport_failed(CallId, H)).
 
+// The ambulance could not hand the patient over at the assigned hospital: exclude it and
+// negotiate a new destination, with the patient still on board.
 +transport_failed(CallId, H)[source(A)]
    :  admitted_to(CallId, H) & emergency(CallId, Patient, _, Pathology)
       & emergency_code(CallId, Code)

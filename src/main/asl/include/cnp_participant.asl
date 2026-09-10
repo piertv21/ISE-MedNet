@@ -1,3 +1,5 @@
+// Generic FIPA ContractNet participant, used by hospitals and doctors.
+
 +cfp(CnpId, Task)[source(Initiator)]
    <- .abolish(cfp(CnpId, Task));
       !bid_or_refuse(CnpId, Task, Initiator).

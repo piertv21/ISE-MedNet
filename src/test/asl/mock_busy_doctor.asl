@@ -1,3 +1,6 @@
+// Accepts one patient then refuses everything, so the local CNP finds no winner and the
+// nurse has to preempt.
+
 !start.
 +!start <- .df_register("doctor_h1").
 
