@@ -116,8 +116,8 @@ Tests are split in two Gradle tasks; `check` runs both.
 ./gradlew masTest   # MAS integration tests, one JVM fork per class
 ```
 
-**22 suites, 98 tests.** The unit layer covers the world model, the Prolog theories, the
+**22 suites, 99 tests.** The unit layer covers the world model, the Prolog theories, the
 STRIPS planner and the RBAC matrix. The MAS layer boots real Jason projects: five with
 mocked agents to isolate single negotiation behaviours (network CNP, local CNP,
-preemption, renegotiation, double-award) and four end-to-end runs of the full simulation
+preemption, renegotiation, double trigger) and four end-to-end runs of the full simulation
 on deterministic scenarios.
