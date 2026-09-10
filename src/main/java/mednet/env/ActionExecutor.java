@@ -255,9 +255,13 @@ final class ActionExecutor {
         });
     }
 
+    // RBAC authorizes the role, not the object: a doctor may abort only the jobs it
+    // started itself, and only for a patient present in its own hospital.
     private boolean abortTreatment(final String agent, final String patient) {
         return withHospital(agent, hospital -> {
-            hospital.abortJobsFor(patient);
+            if (!hospital.abortJobsFor(patient, agent)) {
+                return false;
+            }
             ProbeRegistry.current().onEvent("treatment_aborted", hospital.id(), patient, agent);
             return true;
         });

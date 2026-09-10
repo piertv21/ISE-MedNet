@@ -92,6 +92,10 @@
    :  treating(P, Code) & code_priority(Code, Priority) & my_hospital(H)
    <- .concat("equipment_manager_", H, Manager);
       .concat(P, "_", Use, ReqId);
+      // ReqId is the same on every attempt for this patient and machine, so a grant left
+      // behind by an aborted attempt would satisfy the wait below without the manager
+      // having granted anything. Discard it before asking again.
+      .abolish(granted(ReqId, Equipment));
       +req_id(P, Use, ReqId);
       .send(Manager, tell, request_equipment(ReqId, Equipment, Priority));
       .wait(granted(ReqId, Equipment), 20000);   // timeout -> plan failure

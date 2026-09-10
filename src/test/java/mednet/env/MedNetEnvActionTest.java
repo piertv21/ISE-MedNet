@@ -134,6 +134,27 @@ class MedNetEnvActionTest {
     }
 
     @Test
+    void abortTreatmentIsScopedToTheOwnPatientAndTheOwnJobs() throws Exception {
+        env.hospital("h1").patientArrived("patient1");
+        env.hospital("h1").recordTriageResult("patient1", SeverityCode.GREEN);
+        assertThat(act("doctor_h1_general", "lock_equipment(xray_room)")).isTrue();
+        assertThat(act("doctor_h1_general", "run_exam(patient1, xray, xray_room)")).isTrue();
+
+        // a colleague may not cancel this doctor's job, though the call itself succeeds
+        assertThat(act("doctor_h1_cardiology", "abort_treatment(patient1)")).isTrue();
+        assertThat(env.hospital("h1").examJobsOf("doctor_h1_general")).hasSize(1);
+
+        // the owner may, and an empty cancellation is still a success
+        assertThat(act("doctor_h1_general", "abort_treatment(patient1)")).isTrue();
+        assertThat(env.hospital("h1").examJobsOf("doctor_h1_general")).isEmpty();
+        assertThat(act("doctor_h1_general", "abort_treatment(patient1)")).isTrue();
+
+        // a patient who is not here is not a valid target
+        assertThat(act("doctor_h1_general", "abort_treatment(patient2)")).isFalse();
+        assertThat(probe.count(e -> e.is("treatment_aborted", "h1", "patient2"))).isZero();
+    }
+
+    @Test
     void forceReleaseIsReservedToTheEquipmentManager() throws Exception {
         act("doctor_h1_general", "lock_equipment(operating_room)");
         assertThat(act("equipment_manager_h1", "force_release(operating_room)")).isTrue();

@@ -32,6 +32,10 @@
       !cnp_no_winner(CnpId, Task).
 +!cnp_announce(CnpId, Task, Participants)
    <- .print("[CNP] cfp ", CnpId, " -> ", Participants);
+      // A participant answering after the previous deadline leaves its bid behind, and
+      // this round must not count it: the announcement opens a clean slate.
+      .abolish(propose(CnpId, _));
+      .abolish(refuse(CnpId, _));
       .send(Participants, tell, cfp(CnpId, Task));
       ?cnp_deadline(Deadline);
       .wait(Deadline);                       // asynchronous bid collection

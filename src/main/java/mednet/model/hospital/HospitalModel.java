@@ -181,6 +181,15 @@ public final class HospitalModel {
         treatmentJobs.removeIf(job -> job.patient().equals(patient));
     }
 
+    public synchronized boolean abortJobsFor(final String patient, final String doctor) {
+        if (!presentPatients.contains(patient)) {
+            return false;
+        }
+        examJobs.removeIf(job -> job.patient().equals(patient) && job.doctor().equals(doctor));
+        treatmentJobs.removeIf(job -> job.patient().equals(patient) && job.doctor().equals(doctor));
+        return true;
+    }
+
     public synchronized List<ExamJob> examJobsOf(final String doctor) {
         return examJobs.stream().filter(j -> j.doctor().equals(doctor)).toList();
     }

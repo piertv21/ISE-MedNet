@@ -16,9 +16,17 @@ cnp_deadline(1500).
       .print("[", H, "] triage nurse on duty").
 
 +handover(CallId, Patient, Pathology, PrelimCode)[source(Amb)]
-   :  ready
    <- .abolish(handover(CallId, Patient, Pathology, PrelimCode));
-      .print("receiving ", Patient, " (preliminary code ", PrelimCode, ")");
+      !admit_handover(Patient, Pathology, PrelimCode).
+
++!admit_handover(Patient, Pathology, PrelimCode)
+   :  not ready
+   <- .print("handover of ", Patient, " arrived before duty started; waiting");
+      .wait(ready);
+      !admit_handover(Patient, Pathology, PrelimCode).
+
++!admit_handover(Patient, Pathology, PrelimCode)
+   <- .print("receiving ", Patient, " (preliminary code ", PrelimCode, ")");
       secondary_triage(Patient);
       .wait(triage_result(Patient, _));
       ?triage_result(Patient, Code);
@@ -99,4 +107,14 @@ preemption_victim(D, P, C) :-
    <- .abolish(treatment_completed(Patient));
       -under_treatment(Patient, Doctor, _);
       .print(Patient, " treated and discharged by ", Doctor);
+      !!process_queue.
+
+-!cnp_awarded(t(Patient), _, _)
+   <- .print("assignment of ", Patient, " failed; releasing the local CNP");
+      .abolish(assigning(Patient));
+      !!process_queue.
+
+-!cnp_no_winner(t(Patient), _)
+   <- .print("the no-winner handling of ", Patient, " failed; releasing the local CNP");
+      .abolish(assigning(Patient));
       !!process_queue.
