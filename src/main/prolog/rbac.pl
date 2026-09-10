@@ -1,3 +1,5 @@
+% Role-based access control over environment actions. The authority on who may do what.
+
 role_name(equipment_manager).
 role_name(control_center).
 role_name(triage_nurse).
@@ -8,12 +10,15 @@ role_name(doctor).
 
 role_of(Agent, Role) :- role_name(Role), name_matches(Agent, Role), !.
 
+% The name is the role itself, as in 'control_center',
 name_matches(Agent, Agent).
 
+% or the role followed by an instance suffix, as in 'doctor_h1_cardiology'.
 name_matches(Agent, Role) :-
     atom_concat(Role, '_', Prefix),
     atom_concat(Prefix, _, Agent).
 
+% Patients are numbered rather than suffixed: patient1, patient2 and so on.
 name_matches(Agent, patient) :-
     atom_concat(patient, Suffix, Agent),
     Suffix \== '',
@@ -45,4 +50,5 @@ permitted(doctor, discharge_patient).
 
 permitted(equipment_manager, force_release).
 
+% The single question the environment asks before executing any action.
 can(Agent, Action) :- role_of(Agent, Role), permitted(Role, Action).

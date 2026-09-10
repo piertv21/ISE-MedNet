@@ -13,6 +13,9 @@ import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+// End-to-end mid-transport renegotiation: walk-ins steal the bed reserved for a patient
+// already in transport. The network CNP must reopen, the ambulance must be rerouted and
+// the patient must still be treated.
 @Tag("mas")
 class RenegotiationEndToEndTest {
 
@@ -48,6 +51,9 @@ class RenegotiationEndToEndTest {
 
         EndState.assertQuiescent(PROBE);
 
+        // Every reservation for this patient must have been undone, released by its
+        // hospital or stolen by a walk-in, except the last one, the bed the patient was
+        // admitted into. Anything else is a leaked reservation.
         final long reservations =
                 PROBE.count(e -> e.type().equals("bed_reserved") && e.data().contains("patient1"));
         final long releases = PROBE.count(e -> e.type().equals("bed_released")

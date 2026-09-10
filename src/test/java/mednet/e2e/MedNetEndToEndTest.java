@@ -15,6 +15,9 @@ import mednet.testsupport.EndState;
 import mednet.testsupport.MasTestRunner;
 import mednet.testsupport.TestProbe;
 
+// Full end-to-end simulation: 4 seeded patients, 3 hospitals, the whole agent set,
+// headless. Checks that every patient is eventually discharged and that the per-patient
+// lifecycle keeps the order asserted below.
 @Tag("mas")
 class MedNetEndToEndTest {
 
@@ -65,6 +68,8 @@ class MedNetEndToEndTest {
             assertThat(discharged).as("%s discharged last", patient).isGreaterThan(examStarted);
         }
 
+        // An RBAC denial means an agent attempted an action outside its role; a forced
+        // release means a lock was leaked instead of being handed back.
         assertThat(PROBE.count(e -> e.type().equals("rbac_denied"))).isZero();
         assertThat(PROBE.count(e -> e.type().equals("equipment_force_released"))).isZero();
 

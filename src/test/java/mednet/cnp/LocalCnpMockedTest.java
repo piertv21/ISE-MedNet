@@ -13,6 +13,8 @@ import mednet.testsupport.MasTestRunner;
 import mednet.testsupport.TestProbe;
 import mednet.testsupport.TestSupportEnv;
 
+// In-hospital CNP against mock doctors: the specialized doctor wins, the other is
+// explicitly rejected, and a round produces exactly one assignment.
 @Tag("mas")
 class LocalCnpMockedTest {
 

@@ -13,6 +13,8 @@ import mednet.testsupport.MasTestRunner;
 import mednet.testsupport.TestProbe;
 import mednet.testsupport.TestSupportEnv;
 
+// Mid-transport renegotiation: the winner loses its bed, asks for a divert and the CNP
+// reopens with that hospital excluded, so it cannot win the same call twice.
 @Tag("mas")
 class RenegotiationMockedTest {
 

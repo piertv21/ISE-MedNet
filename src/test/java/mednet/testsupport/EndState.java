@@ -8,6 +8,10 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+// The state every end-to-end run must reach: the scenario is over and no bed is still
+// held for a patient admitted elsewhere or still occupied. The reservation lease is
+// asserted not to have fired, since a run that ends cleanly only because the environment
+// reclaimed a leaked bed has a bug in the negotiation.
 public final class EndState {
 
     private static final List<String> HOSPITALS = List.of("h1", "h2", "h3");

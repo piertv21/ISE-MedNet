@@ -14,6 +14,9 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+// End-to-end preemption: one hospital, one general doctor. A yellow fracture is under
+// treatment when a red cardiac arrest arrives. The red case must preempt it with the
+// equipment released and no forced lease recovery, and both patients must be discharged.
 @Tag("mas")
 class PreemptionEndToEndTest {
 
@@ -58,11 +61,14 @@ class PreemptionEndToEndTest {
         PROBE.awaitEvent(e -> e.type().equals("patient_discharged") && e.data().contains("patient1"),
                 Duration.ofSeconds(120));
 
+        // The victim is planned twice: once when first taken in charge, once when resumed.
         final List<TestProbe.Event> plans = PROBE.events().stream()
                 .filter(e -> e.type().equals("care_plan") && e.data().get(0).equals("patient1"))
                 .toList();
         assertThat(plans).hasSize(2);
 
+        // The second plan is strictly shorter: the exams already performed are perceived
+        // and the planner skips them.
         final int firstPlanSteps = Integer.parseInt(plans.get(0).data().get(3));
         final int replanSteps = Integer.parseInt(plans.get(1).data().get(3));
         assertThat(replanSteps).isLessThan(firstPlanSteps);

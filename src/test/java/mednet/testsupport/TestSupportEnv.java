@@ -13,6 +13,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+// Minimal environment for the mocked CNP tests: no world model, no RBAC. It serves only
+// the percepts the real agents need (my_hospital, triage_result, waiting), emulates the
+// triage queue actions and records every action into the installed TestProbe. Mock agents
+// use the report pseudo-action to surface negotiation outcomes.
 public class TestSupportEnv extends Environment {
 
     private static final Map<String, String> PROGRAMMED_TRIAGE = new ConcurrentHashMap<>();
@@ -24,6 +28,7 @@ public class TestSupportEnv extends Environment {
     private record QueueEntry(String code, long seq) {
     }
 
+    // Programs the outcome of secondary_triage(patient); call before booting the MAS.
     public static void programTriage(final String patient, final String codeAtom) {
         PROGRAMMED_TRIAGE.put(patient, codeAtom);
     }
@@ -60,6 +65,8 @@ public class TestSupportEnv extends Environment {
             case "enqueue_patient", "requeue_front" -> {
                 final String patient = action.getTerm(0).toString();
                 final String code = action.getTerm(1).toString();
+                // Same rule as the real TriageQueue: a known patient keeps its arrival
+                // sequence, so a requeue does not cost it its place in line.
                 final long entrySeq = queue.containsKey(patient)
                         ? queue.get(patient).seq()
                         : seq.getAndIncrement();
@@ -67,6 +74,7 @@ public class TestSupportEnv extends Environment {
             }
             case "dequeue_patient" -> queue.remove(action.getTerm(0).toString());
             default -> {
+                // report(...) and any other action: recorded above, always succeeds
             }
         }
         informAgsEnvironmentChanged();

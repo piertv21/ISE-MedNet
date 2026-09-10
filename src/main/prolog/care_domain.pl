@@ -1,3 +1,7 @@
+% The STRIPS domain of a doctor taking charge of one patient. Since the plan is derived
+% rather than scripted, a patient interrupted by a red-code preemption is replanned from
+% what is already done and the new plan skips the exams completed before the interruption.
+
 action(exam(Exam, Equipment),
        [pending_exam(Exam), equipment_for(Exam, Equipment), held(Equipment)],
        [done(Exam)],
@@ -13,6 +17,7 @@ action(treat,
        [treated],
        []).
 
+% The case is closed with empty hands: everything acquired has been released.
 action(discharge,
        [treated, nothing_held],
        [discharged],
@@ -32,6 +37,7 @@ holds_in(nothing_held, State) :- \+ member(held(_), State).
 holds_in(treatment_resources, State) :-
     forall(member(needs_for_treatment(Equipment), State), member(held(Equipment), State)).
 
+% A machine is needed while a still-pending exam runs on it, or while the treatment
 holds_in(needed(Equipment), State) :- needed_equipment(Equipment, State), !.
 
 needed_equipment(Equipment, State) :-
@@ -45,6 +51,8 @@ care_plan(Pathology, Code, DoneExams, Plan) :-
     initial_state(Pathology, Code, DoneExams, State),
     plan(State, [discharged], Plan).
 
+% The same plan grouped into stages of independent segments. The segments inside one
+% stage use different machines and run as parallel sub-intentions of the doctor.
 care_stages(Pathology, Code, DoneExams, Stages) :-
     care_plan(Pathology, Code, DoneExams, Plan),
     plan_stages(Plan, Stages).
@@ -61,11 +69,14 @@ initial_state(Pathology, Code, DoneExams, State) :-
     append(S1, Machines, S2),
     append(S2, Extras, State).
 
+% A red code may only be treated in the operating room, so that machine is both needed
+% and, from this doctor's point of view, available to take.
 treatment_extras(Code, [available(Equipment), needs_for_treatment(Equipment)]) :-
     treatment_equipment(Code, Equipment),
     !.
 treatment_extras(_, []).
 
+% A segment is one acquire to release block, or a single standalone action.
 plan_segments([], []).
 plan_segments([acquire(Eq) | Rest], [[acquire(Eq) | Body] | More]) :-
     !,
@@ -83,6 +94,8 @@ plan_stages(Plan, Stages) :-
     plan_segments(Plan, Segments),
     group_stages(Segments, Stages).
 
+% Consecutive exam segments on different machines form one parallel stage. Anything else,
+% such as the treatment or the discharge, is a stage of its own.
 group_stages([], []).
 group_stages([Segment | Rest], [[Segment | Parallel] | More]) :-
     exam_segment(Segment),
@@ -103,6 +116,8 @@ parallel_run(Rest, _, [], Rest).
 
 exam_segment(Segment) :- member(exam(_, _), Segment).
 
+% How many steps a staged plan contains, counting the leaves of Stages. Grouping neither
+% drops nor duplicates an action, so this equals the length of the linear plan.
 plan_length(Stages, N) :-
     findall(Step,
             (member(Stage, Stages), member(Segment, Stage), member(Step, Segment)),

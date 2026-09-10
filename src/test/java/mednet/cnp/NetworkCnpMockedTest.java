@@ -13,6 +13,8 @@ import mednet.testsupport.MasTestRunner;
 import mednet.testsupport.TestProbe;
 import mednet.testsupport.TestSupportEnv;
 
+// Network CNP against mock hospitals: lowest bid wins, losers get an explicit reject, a
+// refusal is recorded, and the transport order goes to the winner.
 @Tag("mas")
 class NetworkCnpMockedTest {
 

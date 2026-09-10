@@ -13,6 +13,9 @@ import mednet.testsupport.MasTestRunner;
 import mednet.testsupport.TestProbe;
 import mednet.testsupport.TestSupportEnv;
 
+// Red-code preemption with a single busy mock doctor: the local CNP finds no winner, the
+// nurse preempts the yellow case and the victim returns to the head of its priority
+// class. The asserted property is the order assigned, preempted, requeued.
 @Tag("mas")
 class PreemptionMockedTest {
 

@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Predicate;
 
+// Recording EnvProbe for tests: collects environment events and lets a test await one
+// matching a predicate. One instance per test, with no static state to reset.
 public final class TestProbe implements EnvProbe {
 
     public record Event(String type, List<String> data) {
@@ -44,6 +46,8 @@ public final class TestProbe implements EnvProbe {
         return events.stream().filter(predicate).findFirst();
     }
 
+    // Blocks until an event matching the predicate has been recorded. Events already in
+    // the queue count, so booting the MAS and starting to wait cannot race.
     public Event awaitEvent(final Predicate<Event> predicate, final Duration timeout)
             throws InterruptedException {
         final long deadline = System.currentTimeMillis() + timeout.toMillis();

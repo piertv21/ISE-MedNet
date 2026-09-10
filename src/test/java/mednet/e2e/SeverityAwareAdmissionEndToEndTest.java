@@ -13,6 +13,14 @@ import mednet.testsupport.EndState;
 import mednet.testsupport.MasTestRunner;
 import mednet.testsupport.TestProbe;
 
+// End-to-end check that the preliminary severity code steers the network CNP. The
+// severity scenario puts two patients 11 cells from h1 and 12 from h3, while two walk-ins
+// hold h1 at one free bed of three. Both pathologies need only general, so the
+// specialization penalty is 0 and the distance weight of admission_weights/3 decides:
+//   green  h1 = 11*10 + 66.67 = 176.67   h3 = 12*10 +  0 = 120.00   h3 wins
+//   red    h1 = 11*30 + 66.67 = 396.67   h3 = 12*30 + 50 = 410.00   h1 wins
+// With one weight for every code the red case would score 176.67 against 170 and follow
+// the green one to h3, so the split between hospitals comes from the severity term.
 @Tag("mas")
 class SeverityAwareAdmissionEndToEndTest {
 
