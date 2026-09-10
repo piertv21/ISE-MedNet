@@ -1,10 +1,5 @@
 package mednet.model.hospital;
 
-import mednet.env.probe.ProbeRegistry;
-import mednet.model.patient.SeverityCode;
-import mednet.model.scenario.ScenarioConfig;
-import mednet.prolog.MedicalKb;
-
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -13,12 +8,25 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import mednet.env.probe.ProbeRegistry;
+import mednet.model.patient.SeverityCode;
+import mednet.model.scenario.ScenarioConfig;
+import mednet.prolog.MedicalKb;
+
+// Internal layer of one hospital: beds, triage queue, equipment, running exam and
+// treatment jobs, per-patient triage results. Every mutator is synchronized because
+// agent threads and the clock thread both touch this state.
 public final class HospitalModel {
 
+    // After this many ticks a held equipment lock is considered leaked.
     public static final long LEASE_TICKS = 60;
 
+    // After this many ticks a bed still reserved for a patient who never arrived is
+    // considered leaked and offered back to the hospital agent.
     public static final long RESERVATION_LEASE_TICKS = 120;
 
+    // How long an off-network walk-in occupies a bed. No MedNet agent handles walk-ins,
+    // so their beds are released again after this many ticks.
     public static final int WALK_IN_STAY_TICKS = 50;
 
     private final String id;
@@ -86,6 +94,8 @@ public final class HospitalModel {
         return true;
     }
 
+    // An off-network emergency takes a bed. A stolen reservation is remembered so the
+    // hospital agent perceives reservation_lost/1 and starts the renegotiation.
     public synchronized Optional<String> walkIn(final long nowTick) {
         final Optional<String> stolen = beds.walkIn();
         stolen.ifPresent(lostReservations::add);

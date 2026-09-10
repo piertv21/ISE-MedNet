@@ -8,6 +8,9 @@ import java.util.Random;
 import mednet.model.patient.SeverityCode;
 import mednet.prolog.MedicalKb;
 
+// Static description of a scenario: hospital network, ambulance fleet and event timeline.
+// No agent sees this object; network capacity is discovered through percepts and
+// negotiation only.
 public final class ScenarioConfig {
 
     public record HospitalSpec(String id, int x, int y, int beds, List<String> specializations,
@@ -120,6 +123,8 @@ public final class ScenarioConfig {
         return new ScenarioConfig("e2e", standardHospitals(), standardAmbulances(), events);
     }
 
+    // Renegotiation scenario: the patient is on its way to h1 when a burst of walk-ins
+    // steals the reserved bed, so the network CNP reopens and the ambulance is rerouted.
     private static ScenarioConfig divertScenario() {
         final List<ScenarioEvent> events = List.of(
                 new ScenarioEvent.ActivatePatient(5, "patient1", "cardiac_arrest",
@@ -130,8 +135,14 @@ public final class ScenarioConfig {
         return new ScenarioConfig("divert", standardHospitals(), standardAmbulances(), events);
     }
 
+    // Severity-aware admission: urgency decides where a case is sent. The two walk-ins
+    // leave h1 with one free bed of three (occupancy term 66.67) for the whole negotiation
+    // window, while h3 starts empty. Both patients call from a cell with the same distance
+    // profile (11 to h1, 12 to h3) and both pathologies need only general, which every
+    // hospital owns, so the specialization penalty is 0 and distance weight decides.
     private static ScenarioConfig severityScenario() {
         final List<ScenarioEvent> events = List.of(
+                // h1 down to one free bed, and back to three only around tick 52
                 new ScenarioEvent.WalkIn(2, "h1"),
                 new ScenarioEvent.WalkIn(3, "h1"),
                 new ScenarioEvent.ActivatePatient(5, "patient1", "fracture",
@@ -141,6 +152,9 @@ public final class ScenarioConfig {
         return new ScenarioConfig("severity", standardHospitals(), standardAmbulances(), events);
     }
 
+    // Preemption scenario: a yellow fracture keeps the only doctor busy, then a red
+    // cardiac arrest arrives at the same hospital and preempts it. The secondary triage
+    // upgrades patient1 from the green guess to its true yellow code.
     private static ScenarioConfig preemptionScenario() {
         final List<ScenarioEvent> events = List.of(
                 new ScenarioEvent.ActivatePatient(5, "patient1", "fracture",

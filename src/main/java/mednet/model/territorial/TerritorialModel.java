@@ -7,6 +7,8 @@ import java.util.Optional;
 
 import mednet.model.scenario.ScenarioConfig;
 
+// Territorial layer: a 30x30 obstacle-free grid holding the ambulances and the fixed
+// hospital sites. Patients appear on it through PatientRegistry when their event fires.
 public final class TerritorialModel {
 
     public static final int WIDTH = 30;

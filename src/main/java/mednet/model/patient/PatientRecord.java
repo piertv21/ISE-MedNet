@@ -1,5 +1,8 @@
 package mednet.model.patient;
 
+// Mutable state of one simulated patient across both layers: territorial map while
+// waiting or in transport, hospital afterwards. guessCode is the prehospital assessment
+// the ambulance perceives, trueCode the one the secondary triage reveals; they may differ.
 public final class PatientRecord {
 
     private final String name;

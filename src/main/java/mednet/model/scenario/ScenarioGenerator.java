@@ -1,15 +1,17 @@
 package mednet.model.scenario;
 
-import mednet.env.probe.ProbeRegistry;
-import mednet.model.hospital.HospitalModel;
-import mednet.model.patient.PatientRecord;
-import mednet.model.patient.PatientRegistry;
-
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map;
 import java.util.Optional;
 
+import mednet.env.probe.ProbeRegistry;
+import mednet.model.hospital.HospitalModel;
+import mednet.model.patient.PatientRecord;
+import mednet.model.patient.PatientRegistry;
+
+// Fires the scenario events at their scheduled tick. The timeline is precomputed from a
+// seed, so two runs with the same scenario and seed produce the same stimulus sequence.
 public final class ScenarioGenerator {
 
     private final Deque<ScenarioEvent> pending;

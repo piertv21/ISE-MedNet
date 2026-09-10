@@ -1,5 +1,8 @@
 package mednet.model.territorial;
 
+// Deterministic movement: one grid cell per tick toward the target, first along the axis
+// with the larger residual distance. The map has no obstacles, so this greedy Manhattan
+// step is optimal and no path search is needed.
 final class MovementEngine {
 
     private MovementEngine() {

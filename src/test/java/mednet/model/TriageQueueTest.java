@@ -22,6 +22,8 @@ class TriageQueueTest {
                 .containsExactly("red1", "yellow1", "green1", "green2");
     }
 
+    // A preempted patient re-enters ahead of everyone who queued while it was in
+    // treatment, because the queue keeps the arrival sequence from the first entry.
     @Test
     void requeueFrontKeepsHeadOfItsPriorityClass() {
         final TriageQueue queue = new TriageQueue();

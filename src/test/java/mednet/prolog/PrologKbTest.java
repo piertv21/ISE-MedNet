@@ -51,6 +51,8 @@ class PrologKbTest {
         assertThat(PrologKb.allAtoms("R", "role_of('someone_else', R)")).isEmpty();
     }
 
+    // tuProlog's engine is not thread-safe and agents reason on their own threads, so the
+    // per-thread engine of PrologKb has to hold under concurrent use.
     @Test
     void engineIsUsableFromSeveralThreadsAtOnce() throws Exception {
         final Thread[] threads = new Thread[8];

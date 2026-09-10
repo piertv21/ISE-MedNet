@@ -1,5 +1,12 @@
 package mednet.prolog;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import alice.tuprolog.Prolog;
 import alice.tuprolog.SolveInfo;
 import alice.tuprolog.Struct;
@@ -8,15 +15,12 @@ import alice.tuprolog.Theory;
 import alice.tuprolog.exceptions.MalformedGoalException;
 import alice.tuprolog.exceptions.NoSolutionException;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
+// The only bridge between Java and the Prolog theories (medical KB, RBAC policy, STRIPS
+// domain and planner). The environment queries this class directly and the agents reach
+// the same engine through the mednet.prolog.* internal actions.
 public final class PrologKb {
 
+    // Theory files, in load order: later files may use predicates defined earlier.
     private static final List<String> THEORY_RESOURCES = List.of(
             "/mednet_kb.pl",
             "/rbac.pl",

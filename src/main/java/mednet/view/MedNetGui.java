@@ -22,6 +22,9 @@ import mednet.model.hospital.HospitalModel;
 import mednet.model.patient.PatientRegistry;
 import mednet.model.territorial.TerritorialModel;
 
+// The dual-view monitor window: territorial map on the left, one block per hospital on
+// the right. Read-only, driven by a Swing timer, never built in headless or test runs.
+// The first refreshes may show no doctors, since Jason creates the environment first.
 public final class MedNetGui {
 
     private static final int REFRESH_MS = 300;
@@ -75,7 +78,7 @@ public final class MedNetGui {
         frame.setLocationRelativeTo(null);
         this.timer = new Timer(REFRESH_MS, e -> refresh());
     }
-    
+
     private void fitToScreen() {
         final Rectangle screen = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
         frame.setSize(Math.min(PREFERRED_WIDTH, screen.width),

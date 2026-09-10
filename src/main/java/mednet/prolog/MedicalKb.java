@@ -3,6 +3,9 @@ package mednet.prolog;
 import java.util.List;
 import java.util.Optional;
 
+// The medical and organizational knowledge as the Java side sees it: every method is one
+// query against mednet_kb.pl. No copy of that knowledge is kept here, and
+// KbConsistencyTest fails the build if a Java constant disagrees with the theory.
 public final class MedicalKb {
 
     private MedicalKb() {

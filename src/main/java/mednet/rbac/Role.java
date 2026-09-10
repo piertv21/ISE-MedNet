@@ -3,6 +3,9 @@ package mednet.rbac;
 import java.util.List;
 import java.util.Optional;
 
+// Organizational roles, derived from the agent naming convention: control_center,
+// ambulance_a1, hospital_h2, triage_nurse_h1, doctor_h1_cardiology,
+// equipment_manager_h3, patient4.
 public enum Role {
     CONTROL_CENTER("control_center"),
     EQUIPMENT_MANAGER("equipment_manager"),

@@ -15,6 +15,7 @@ import jason.runtime.RuntimeServices;
 import mednet.rbac.AgentNames;
 import mednet.rbac.Role;
 
+// The doctors on duty in the running MAS, bucketed by hospital.
 public final class DoctorRoster {
 
     private static final Logger LOGGER = Logger.getLogger(DoctorRoster.class.getName());

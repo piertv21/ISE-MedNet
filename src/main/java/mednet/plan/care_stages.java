@@ -14,6 +14,8 @@ import jason.asSyntax.Term;
 import mednet.env.probe.ProbeRegistry;
 import mednet.prolog.PrologKb;
 
+// mednet.plan.care_stages(Patient, Pathology, Code, DoneExams, Stages): asks the STRIPS
+// planner for the care plan of one patient and hands it to the doctor.
 public class care_stages extends DefaultInternalAction {
 
     @Override

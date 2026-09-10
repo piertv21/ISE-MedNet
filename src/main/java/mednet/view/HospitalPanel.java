@@ -24,6 +24,7 @@ import mednet.model.hospital.TreatmentJob;
 import mednet.model.hospital.TriageEntry;
 import mednet.rbac.AgentNames;
 
+// Internal view of one hospital: beds, doctors on duty, triage queue, equipment locks.
 final class HospitalPanel extends JPanel {
 
     private static final int ROW_HEIGHT = 16;
@@ -59,12 +60,12 @@ final class HospitalPanel extends JPanel {
         add(bedsLabel, BorderLayout.NORTH);
         add(tables, BorderLayout.CENTER);
     }
-    
+
     @Override
     public Dimension getMaximumSize() {
         return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
     }
-    
+
     private static JPanel section(final String title, final DefaultTableModel model,
             final int visibleRows, final int[] columnWidths) {
         final JTable table = new JTable(model) {

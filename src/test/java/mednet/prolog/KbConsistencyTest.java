@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+// No Java constant, enum or scenario spec may disagree with a clause of the theory. Every
+// test here compares the two sides rather than restating a value.
 class KbConsistencyTest {
 
     @Test
@@ -45,6 +47,8 @@ class KbConsistencyTest {
         }
     }
 
+    // The monotonicity the bidding relies on: a less urgent case may never weigh distance
+    // or a specialization mismatch more heavily than a more urgent one.
     @Test
     void admissionWeightsNeverGrowAsUrgencyDrops() {
         final List<String> byUrgency = MedicalKb.severityCodes();

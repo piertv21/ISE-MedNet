@@ -46,6 +46,8 @@ class EquipmentLockTest {
         assertThat(or.lock("doctor_b", 1)).isTrue();
     }
 
+    // Agent threads contend for the mutex, so the guarantee must hold under a real race
+    // and not only in sequential calls: eight threads released at once, one acquisition.
     @Test
     void concurrentLockRaceHasExactlyOneWinner() throws Exception {
         final Equipment ct = new Equipment("ct_scanner");

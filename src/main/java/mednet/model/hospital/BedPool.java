@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+// Bed capacity of one hospital. A bed can be reserved (admission won, patient still in
+// transport) or occupied (patient present). Invariant: reserved + occupied <= capacity.
 public final class BedPool {
 
     private final int capacity;
@@ -51,6 +53,8 @@ public final class BedPool {
         return false;
     }
 
+    // An off-network emergency takes a bed. If none is free it steals a reserved one and
+    // returns that patient's name, so the hospital agent can trigger the renegotiation.
     public Optional<String> walkIn() {
         final String walkInId = "walk_in_" + (++walkInCounter);
         if (free() > 0) {
@@ -75,6 +79,8 @@ public final class BedPool {
                 .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
     }
 
+    // Ages the reservations and returns those held longer than leaseTicks, that is beds
+    // kept for a patient who never arrived.
     public List<String> ageReservations(final long nowTick, final long leaseTicks) {
         reserved.forEach(patient -> reservedSince.putIfAbsent(patient, nowTick));
         reservedSince.keySet().retainAll(reserved);

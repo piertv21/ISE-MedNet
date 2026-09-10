@@ -1,5 +1,7 @@
 package mednet.model.hospital;
 
+// Mutex over one piece of critical equipment. Single owner, re-entrant for that owner so
+// a retry after a partial failure does not deadlock, and only the owner may unlock.
 public final class Equipment {
 
     private final String name;

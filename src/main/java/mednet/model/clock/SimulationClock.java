@@ -7,6 +7,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+// Global discrete clock. A single-thread scheduler drives it in production; tests call
+// tick() by hand via manualClock for determinism.
 public final class SimulationClock {
 
     private final List<TickListener> listeners = new CopyOnWriteArrayList<>();
@@ -51,6 +53,9 @@ public final class SimulationClock {
         }
     }
 
+    // Ends the run: no further tick is delivered and the clock cannot be restarted, so
+    // the world keeps its final state. Idempotent, and safe to call from inside a tick
+    // because the shutdown is graceful and the tick in flight still completes.
     public synchronized void finish() {
         if (finished) {
             return;

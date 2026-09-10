@@ -38,6 +38,7 @@ class RbacPolicyTest {
             Map.entry("discharge_patient", Role.DOCTOR),
             Map.entry("force_release", Role.EQUIPMENT_MANAGER));
 
+    // Every role and action pair: one role may perform each action, all others are denied.
     @Test
     void fullDenialMatrix() {
         for (final var actionEntry : EXPECTED_OWNER.entrySet()) {
@@ -50,6 +51,7 @@ class RbacPolicyTest {
         }
     }
 
+    // A permission added to rbac.pl and forgotten in the table above fails the build.
     @Test
     void policyCoversEveryKnownAction() {
         assertThat(PrologKb.allAtoms("Action", "permitted(_, Action)"))

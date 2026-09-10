@@ -1,5 +1,7 @@
 package mednet.model.scenario;
 
+import java.util.Map;
+
 import mednet.env.probe.ProbeRegistry;
 import mednet.model.clock.SimulationClock;
 import mednet.model.clock.TickListener;
@@ -7,8 +9,9 @@ import mednet.model.hospital.HospitalModel;
 import mednet.model.patient.PatientRecord;
 import mednet.model.patient.PatientRegistry;
 
-import java.util.Map;
-
+// Detects the end of a run (timeline exhausted, every patient discharged, every hospital
+// back to full free capacity) and then freezes the clock. Must be the last listener
+// registered on the clock, see MedNetEnv.init.
 public final class CompletionWatcher implements TickListener {
 
     private final ScenarioGenerator generator;

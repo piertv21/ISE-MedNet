@@ -1,7 +1,5 @@
 package mednet.model.hospital;
 
-import mednet.model.patient.SeverityCode;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -9,6 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import mednet.model.patient.SeverityCode;
+
+// The ED priority queue, ordered by severity priority then arrival sequence, both
+// ascending. A patient gets an arrival sequence once and keeps it, so a patient requeued
+// after a preemption returns to the head of its priority class instead of the tail.
 public final class TriageQueue {
 
     private final List<TriageEntry> entries = new ArrayList<>();

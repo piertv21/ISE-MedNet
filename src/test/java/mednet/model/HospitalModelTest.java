@@ -10,6 +10,8 @@ import mednet.model.scenario.ScenarioConfig;
 
 class HospitalModelTest {
 
+    // Built from the real "empty" scenario spec, so capacity and the equipment list stay
+    // in step with the configuration the simulation runs.
     private HospitalModel h1; // capacity 3
 
     @BeforeEach
@@ -47,6 +49,7 @@ class HospitalModelTest {
             h1.onTick(tick);
             assertThat(h1.expiredReservations()).as("at tick %d", tick).isEmpty();
         }
+        // p2 claims its bed just in time: only the reservation nobody ever claims expires.
         h1.patientArrived("p2");
         h1.onTick(HospitalModel.RESERVATION_LEASE_TICKS + 1);
         h1.onTick(HospitalModel.RESERVATION_LEASE_TICKS + 2);

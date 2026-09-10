@@ -9,6 +9,9 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+// Pins what the planner derives. It returns the first plan it finds rather than a
+// shortest one, so the exact step sequences asserted here are the contract: a change to
+// the clause order in care_domain.pl fails here instead of altering plans at runtime.
 class StripsPlannerTest {
 
     private static List<String> plan(final String pathology, final String code, final String done) {
@@ -67,6 +70,8 @@ class StripsPlannerTest {
             assertThat(steps).as("plan of %s ends by closing the case", pathology).endsWith("discharge");
             assertThat(steps).as("plan of %s treats the patient", pathology).contains("treat");
 
+            // No hold-and-wait and therefore no deadlock: at most one machine is held at
+            // a time and every plan gives back what it took.
             final List<String> held = new ArrayList<>();
             for (final String step : steps) {
                 if (step.startsWith("acquire(")) {

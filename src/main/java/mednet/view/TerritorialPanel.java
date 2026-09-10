@@ -13,6 +13,7 @@ import mednet.model.territorial.AmbulanceState;
 import mednet.model.territorial.HospitalSite;
 import mednet.model.territorial.TerritorialModel;
 
+// Paints the territorial layer: grid, hospital sites, ambulances and waiting patients.
 final class TerritorialPanel extends JPanel {
 
     private static final int CELL = 20;
