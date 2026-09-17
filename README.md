@@ -1,7 +1,7 @@
 # 🏥 MedNet
 
 ![Java](https://img.shields.io/badge/Java-21-orange)
-![Gradle](https://img.shields.io/badge/Gradle-9.7-blue)
+![Gradle](https://img.shields.io/badge/Gradle-9.7.1-blue)
 ![Jason](https://img.shields.io/badge/Jason-3.3.0-green)
 ![tuProlog](https://img.shields.io/badge/tuProlog-4.1.1-lightgrey)
 
@@ -25,11 +25,13 @@ holding the triage queue, the doctors and the equipment.
 ## ✨ Main Features
 
 - **Two-stage Contract Net Protocol**: a macro round between the control center and the
-  hospitals (bidding on distance, occupancy and specialization match, weighted by
-  severity code), and a micro round between a hospital's triage nurse and its doctors.
+  hospitals (a cost combining travel distance and specialization match, both weighted by
+  the severity code, plus ward occupancy as a percentage), and a micro round between a
+  hospital's triage nurse and its doctors.
 - **Priority triage with preemption**: a red-code patient can interrupt an ongoing
-  lower-priority treatment; the victim is requeued at the head of its own priority class
-  and later **replanned**, not restarted from scratch.
+  lower-priority treatment; the victim goes back through `requeue_front`, which reinserts
+  it at the head of its own priority class in the queue model, and is later **replanned**,
+  not restarted from scratch.
 - **Mid-transport renegotiation**: if the assigned hospital loses capacity while the
   ambulance is en route, the network round reopens excluding it and the ambulance is
   rerouted.
@@ -68,9 +70,13 @@ The default configuration (`mednet_local.mas2j`) runs **24 agents** over three h
 
 ## 🧠 Knowledge Base
 
-Clinical and organizational constraints live in `src/main/prolog/mednet_kb.pl` and reach
-the agents as AgentSpeak beliefs through the `mednet.prolog.consult_kb` internal action,
-so plan context conditions query them directly rather than reading external data.
+Clinical and organizational constraints live in `src/main/prolog/mednet_kb.pl`. The part the
+agents reason on — severity priorities, admission weights, the pathology/specialization
+relation and the protocol limits — reaches them as AgentSpeak beliefs through the
+`mednet.prolog.consult_kb` internal action, so plan context conditions query it directly
+rather than reading external data. Exams, machines and job durations stay in Prolog: the
+Java environment queries them, and the doctor reaches them through the planner rather than
+carrying them in its belief base.
 
 - **Severity codes**: `red`, `yellow`, `green`, `white`; preemptability is *derived*
   from urgency, not stated.
@@ -95,8 +101,8 @@ the segmentation into parallel stages).
 ./gradlew check
 ```
 
-The simulation ends on its own once every patient has been discharged and every bed is
-free again; the status bar reports the final tick.
+The simulation ends on its own once the scenario timeline is exhausted, every patient has
+been discharged and every bed is free again; the status bar reports the final tick.
 
 The environment accepts arguments in `mednet_local.mas2j`:
 
@@ -105,7 +111,8 @@ The environment accepts arguments in `mednet_local.mas2j`:
 | `seed=<n>` | Seeds the scenario generator (deterministic timelines) |
 | `scenario=<name>` | `default`, `e2e`, `preemption`, `divert`, `severity`, `empty` |
 | `period=<ms>` | Milliseconds per simulation tick (default 250) |
-| `gui` | Opens the dual view |
+| `gui` | Opens the dual view (ignored on a headless JVM) |
+| `manualClock` | Does not start the scheduler: ticks are generated programmatically (used by the unit tests) |
 
 ## 🧪 Testing
 
